@@ -4,7 +4,7 @@
 <generator uri="https://github.com/jekyll/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2015-02-21T16:50:21+01:00</updated>
+<updated>2015-02-21T16:57:58+01:00</updated>
 <id>/</id>
 <author>
   <name>Adam Engström</name>
@@ -260,16 +260,18 @@ the portability of the raw posts.&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;em&gt;For a while I used Tom theme and changed the css file to limit the
 width of &lt;code&gt;img src&lt;/code&gt; tag which kind of worked. Then I wanted to use some
-MathJax formulas and discovered the deployment to GitHub pages was no
-longer so smooth because plugins are not allowed (totally
+&lt;a href=&quot;http://www.mathjax.org/&quot;&gt;MathJax&lt;/a&gt; formulas and discovered the deployment was no longer so
+smooth because plugins are not allowed by GitHub pages (totally
 understandable though).&lt;/em&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;Back to the drawing board.. What I ended up with was publishing the
+&lt;p&gt;&lt;em&gt;Back to the drawing board… What I ended up with was publishing the
 generated site instead of the Jekyll source on GitHub. There are many
 examples of how to do this but none of them were as simple as just
-pushing the code and letting GitHub handle generation.&lt;/em&gt;&lt;/p&gt;
+pushing the code and letting GitHub handle generation. Feels like
+something that should be built into Jekyll to be able to easily deploy
+to servers without ability to generate.&lt;/em&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;What I did was something like this:&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;What I did was something like this (taken from &lt;a href=&quot;http://stackoverflow.com/questions/7539382/how-can-i-deploy-from-a-git-subdirectory&quot;&gt;here&lt;/a&gt;):&lt;/em&gt;&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;git branch -M master source
 sed -i &#39;/_site/d&#39; .gitignore
@@ -282,6 +284,11 @@ git push origin :master # Remove the currrent master from GitHub, had
 git subtree push --prefix _site origin master # Publish the contents
                                               # of _site to master branch
 &lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Then on each change I locally run &lt;code&gt;jekyll build&lt;/code&gt; and then commit the
+changes before running the subtree push again to update remote
+master. This way I keep both the source and generated files in the
+same repo.&lt;/em&gt;&lt;/p&gt;
 
 
     &lt;p&gt;&lt;a href=&quot;/articles/first-post/&quot;&gt;First Post&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;&quot;&gt;Projects&lt;/a&gt; on January 11, 2015.&lt;/p&gt;
