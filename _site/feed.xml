@@ -4,7 +4,7 @@
 <generator uri="https://github.com/jekyll/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2015-02-21T15:19:29+01:00</updated>
+<updated>2015-02-21T16:50:21+01:00</updated>
 <id>/</id>
 <author>
   <name>Adam Engström</name>
@@ -246,6 +246,42 @@ web-design-illiterate was very pleasant to setup and customize. Awesome to
 be able to write and publish without leaving Emacs and the
 terminal. With the existing themes it even looks acceptable (unlike
 something I would have designed…).&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Update 2015-02-22&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;After using default Jekyll for a while I quite soon discovered that
+it was not as awesome as I first though. As soon as I started writing
+and wanted to include an image I found out the stock themes were quite
+bad at presenting images (no scaling, if including a huge image then
+it was presented in native resolution). Looking for alternatives I
+tried out some different plugins but most of them required using
+special liquid tags instead of normal markdown which heavily limits
+the portability of the raw posts.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;For a while I used Tom theme and changed the css file to limit the
+width of &lt;code&gt;img src&lt;/code&gt; tag which kind of worked. Then I wanted to use some
+MathJax formulas and discovered the deployment to GitHub pages was no
+longer so smooth because plugins are not allowed (totally
+understandable though).&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Back to the drawing board.. What I ended up with was publishing the
+generated site instead of the Jekyll source on GitHub. There are many
+examples of how to do this but none of them were as simple as just
+pushing the code and letting GitHub handle generation.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;What I did was something like this:&lt;/em&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;git branch -M master source
+sed -i &#39;/_site/d&#39; .gitignore
+git add .gitignore
+git add _site/
+git commit -m &quot;Add _site to vc&#39;
+git push origin :master # Remove the currrent master from GitHub, had
+                        # to change the default branch under the repo
+                        # settings of GitHub to be able to delete
+git subtree push --prefix _site origin master # Publish the contents
+                                              # of _site to master branch
+&lt;/code&gt;&lt;/pre&gt;
 
 
     &lt;p&gt;&lt;a href=&quot;/articles/first-post/&quot;&gt;First Post&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;&quot;&gt;Projects&lt;/a&gt; on January 11, 2015.&lt;/p&gt;
