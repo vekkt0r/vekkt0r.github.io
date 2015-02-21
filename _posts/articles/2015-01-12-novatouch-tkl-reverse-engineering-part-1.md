@@ -40,7 +40,7 @@ a connector looking very much like a debugging connector close to the
 processor. I immediately opened up my keyboard and started probing
 around with a multimeter!
 
-![Programming header pingout]({{ site.base_url }}/images/novatouch_pinout.png)
+![Programming header pinout]({{ site.base_url }}/images/novatouch_pinout.png)
 
 Correctamundo! All of the JTAG and Spy-Bi-Wire connections to the MSP
 was available in the connector. I whipped out my [GoodFET] and crossed
@@ -73,7 +73,7 @@ the most interesting ones:
 By looking at some existing [information] about Topre keyboards it was
 easy to sketch out how the switch matrix probably looked.
 
-![Matrix sketch]({{ site.base_url }}/assets/images/novatouch_matrix_sketch.jpg)
+![Matrix sketch]({{ site.base_url }}/images/novatouch_matrix_sketch.jpg)
 
 The hardware is a little bit different from the HHKB, instead of using
 a BCD decoder to select row the Novatouch uses a hex buffer. This
@@ -92,7 +92,7 @@ header.
 
 ### Programming the Digital Potentiometer ###
 
-![Digital Potentiometer Programming]({{site.base_url}}/assets/images/novatouch_pot.jpg )
+![Digital Potentiometer Programming]({{site.base_url}}/images/novatouch_pot.jpg )
 
 Interested in finding out more about what the digital potentiometer was
 used for I connected a BusPirate to the I2C bus of the
@@ -143,7 +143,7 @@ differ.
 
 ### Wrap-up ###
 
-![Novatouch schematic]({{ site.base_url }}/assets/images/novatouch_schematic.svg)
+![Novatouch schematic]({{ site.base_url }}/images/novatouch_schematic.svg)
 
 In this first part of Novatouch teardown I made some analysing of the
 hardware and how the key matrix looks. In the next part I will do some
