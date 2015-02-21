@@ -41,16 +41,18 @@ the portability of the raw posts._
 
 _For a while I used Tom theme and changed the css file to limit the
 width of `img src` tag which kind of worked. Then I wanted to use some
-MathJax formulas and discovered the deployment to GitHub pages was no
-longer so smooth because plugins are not allowed (totally
+[MathJax] formulas and discovered the deployment was no longer so
+smooth because plugins are not allowed by GitHub pages (totally
 understandable though)._
 
-_Back to the drawing board.. What I ended up with was publishing the
+_Back to the drawing board... What I ended up with was publishing the
 generated site instead of the Jekyll source on GitHub. There are many
 examples of how to do this but none of them were as simple as just
-pushing the code and letting GitHub handle generation._
+pushing the code and letting GitHub handle generation. Feels like
+something that should be built into Jekyll to be able to easily deploy
+to servers without ability to generate._
 
-_What I did was something like this:_
+_What I did was something like this (taken from [here]):_
 
 ~~~ sh
 git branch -M master source
@@ -65,5 +67,12 @@ git subtree push --prefix _site origin master # Publish the contents
                                               # of _site to master branch
 ~~~
 
+_Then on each change I locally run `jekyll build` and then commit the
+changes before running the subtree push again to update remote
+master. This way I keep both the source and generated files in the
+same repo._
+
 [Jekyll]: http://jekyllbootstrap.com/
 [pages]: https://pages.github.com/
+[MathJax]: http://www.mathjax.org/
+[here]: http://stackoverflow.com/questions/7539382/how-can-i-deploy-from-a-git-subdirectory
