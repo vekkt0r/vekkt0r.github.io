@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+<channel>
+        <title>Random projects</title>
+        <description>Random projects - Adam Engström</description>
+        <link>http://vekkt0r.github.io</link>
+        <link>http://vekkt0r.github.io</link>
+        <lastBuildDate>2015-02-21T13:06:45+01:00</lastBuildDate>
+        <pubDate>2015-02-21T13:06:45+01:00</pubDate>
+        <ttl>1800</ttl>
+
+
+        <item>
+                <title>Novatouch TKL Reverse Engineering - Part 1</title>
+                <description>
+&lt;script type=&quot;text/javascript&quot; src=&quot;http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;For a long time I’ve had a fascination for reverse engineering and
+modifying proprietary hardware to add new functions or work in a
+different way. I have never actually done any serious reverse
+engineering myself, just enjoying what other people have done and
+taken advantage of the cool stuff available (who doesn’t have an old
+[dd | Open]-WRT router laying around? :-)).&lt;/p&gt;
+
+&lt;p&gt;To begin my adventures in reversing I start with one of the simplest
+devices available, a keyboard. The specific device I choose was a
+&lt;a href=&quot;http://deskthority.net/wiki/Cooler_Master_NovaTouch_TKL&quot;&gt;Cooler Master Novatouch TKL&lt;/a&gt; which is a capacitive switch TKL
+(ten-key-less) keyboard. Most keyboards of this type have the ability
+to change the behaviour of the modifier keys with the help of DIP
+switches, for example switching the &lt;code&gt;Caps Lock&lt;/code&gt; and &lt;code&gt;Control&lt;/code&gt; control
+keys for better reachability. The problem with this keyboard is that
+no such thing is available.. Of course one could do this in software
+but this will be different for each OS and may not even be possible on
+computers where the user has limited permissions.&lt;/p&gt;
+
+&lt;p&gt;This had irritated me for a while after getting the keyboard and when
+browsing around the internets and reading a &lt;a href=&quot;http://imgur.com/a/CMqpt&quot;&gt;review&lt;/a&gt; of the keyboard
+there was also a teardown with some internal pictures. On one of the
+pictures I saw that there was a MSP430F5510 processor, this tickled my
+interest because I had just played around with MSP430 processors for
+evaluation on using them in my long range RF-modules for sensor
+networks (should do future a post on that). It also seemed like there was
+a connector looking very much like a debugging connector close to the
+processor. I immediately opened up my keyboard and started probing
+around with a multimeter!&lt;/p&gt;
+
+&lt;!-- ![Novatouch Pinout](/assets/novatouch_pinout.png) --&gt;
+&lt;p&gt;&lt;a href=&quot;/assets/images/novatouch_pinout.png&quot; rel=&quot;lightbox&quot; title=&quot;Novatouch pinout&quot;&gt;&lt;img src=&quot;/assets/images/novatouch_pinout.png&quot; alt=&quot;&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Correctamundo! All of the JTAG and Spy-Bi-Wire connections to the MSP
+was available in the connector. I whipped out my &lt;a href=&quot;http://goodfet.sourceforge.net/&quot;&gt;GoodFET&lt;/a&gt; and crossed
+my fingers hoping that the code protection would not be enabled (not
+actually believing the memory would be readable). After fighting a bit
+with the (very broken) FTDI driver in OS X Yosemite I saw some life
+from the keyboard and the GoodFET, no code protection!? Managed to read
+out the complete BSL and main flash firmware with the GoodFET without
+any problems.&lt;/p&gt;
+
+&lt;p&gt;So… What to do now? Maybe find out some more about the hardware
+before diving into the firmware?&lt;/p&gt;
+
+&lt;h3 id=&quot;hardware&quot;&gt;Hardware&lt;/h3&gt;
+
+&lt;p&gt;Some quick Google searches about the chips on the bottom of the
+circuit board gave an idea about how things was connected. Here are
+the most interesting ones:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Symbol&lt;/th&gt;
+      &lt;th&gt;Chip&lt;/th&gt;
+      &lt;th&gt;Function&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Z1&lt;/td&gt;
+      &lt;td&gt;SN74LV07A&lt;/td&gt;
+      &lt;td&gt;Hex buffer&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Z2&lt;/td&gt;
+      &lt;td&gt;SN74LV07A&lt;/td&gt;
+      &lt;td&gt;Hex buffer&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Z3&lt;/td&gt;
+      &lt;td&gt;MSP430F5510&lt;/td&gt;
+      &lt;td&gt;Microcontroller&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Z5&lt;/td&gt;
+      &lt;td&gt;SN74LV4051A&lt;/td&gt;
+      &lt;td&gt;Analog (de)multiplexer&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Z7&lt;/td&gt;
+      &lt;td&gt;SN74LV07A&lt;/td&gt;
+      &lt;td&gt;Analog (de)multiplexer&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Z8&lt;/td&gt;
+      &lt;td&gt;TP1684&lt;/td&gt;
+      &lt;td&gt;Capacitive switch sense&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Z9&lt;/td&gt;
+      &lt;td&gt;AD5258BRMZ50&lt;/td&gt;
+      &lt;td&gt;50k digital potentiometer&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;By looking at some existing &lt;a href=&quot;https://raw.githubusercontent.com/tmk/tmk_keyboard/master/keyboard/hhkb/doc/HHKB.txt&quot;&gt;information&lt;/a&gt; about Topre keyboards it was
+easy to sketch out how the switch matrix probably looked.&lt;/p&gt;
+
+&lt;!-- ![Matrix sketch](/assets/novatouch_matrix_sketch.jpg) --&gt;
+&lt;p&gt;&lt;a href=&quot;/assets/images/novatouch_matrix_sketch.jpg&quot; rel=&quot;lightbox&quot; title=&quot;Matrix sketch&quot;&gt;&lt;img src=&quot;/assets/images/novatouch_matrix_sketch.jpg&quot; alt=&quot;Sketch of matrix&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The hardware is a little bit different from the HHKB, instead of using
+a BCD decoder to select row the Novatouch uses a hex buffer. This
+consumes some more IOs on the MSP but the function is the same.&lt;/p&gt;
+
+&lt;p&gt;By controlling the row and column with the hex buffers and analog
+multiplexers the controller chooses which switch should be connected
+to the proprietary Topre capacitive switch sense chip. An interesting
+part is the digital potentiometer that is connected to the cap sense,
+seems like it is connected between pins 3 and 6 on the cap sense chip,
+unfortunately I was not able to find any data-sheet for the cap sense
+so I’m not sure about it’s function. Was hoping it would be connected
+to the I2C interface of the MSP so it would be easy to mess around
+with but it seems to be directly routed to an unpopulated
+header.&lt;/p&gt;
+
+&lt;h3 id=&quot;programming-the-digital-potentiometer&quot;&gt;Programming the Digital Potentiometer&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;/assets/images/novatouch_pot.jpg&quot; rel=&quot;lightbox&quot; title=&quot;Digital potentiometer programming&quot;&gt;&lt;img src=&quot;/assets/images/novatouch_pot.jpg&quot; alt=&quot;&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;!--![Digital Potentiometer Programming](/assets/novatouch_pot.jpg )--&gt;
+
+&lt;p&gt;Interested in finding out more about what the digital potentiometer was
+used for I connected a BusPirate to the I2C bus of the
+&lt;a href=&quot;http://www.analog.com/static/imported-files/data_sheets/AD5258.pdf&quot;&gt;AD5258&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;I2C&amp;gt;[ 0x30 0 [ 0x31 r ]
+I2C START BIT
+WRITE: 0x30 ACK
+WRITE: 0x00 ACK
+I2C START BIT
+WRITE: 0x31 ACK
+READ: 0x15 NACK
+I2C STOP BIT
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Reading RDAC register&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Reading out the default value it seemed like the it was programmed to
+around &lt;script type=&quot;math/tex&quot;&gt;16 k\Omega&lt;/script&gt; according to equation from data-sheet (ignoring
+the fact of device specific calibration which differs up to &lt;script type=&quot;math/tex&quot;&gt;\pm 30
+\%&lt;/script&gt;..).&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;R_{WB}(D) = \frac{D}{64} \cdot R_{AB} + 2 \cdot R_{W}&lt;/script&gt;
+
+&lt;p&gt;By changing the resistance the activation point of the keys changed. A
+higher resistance made the activation point get lower (the key needs
+to be pressed down deeper). Lowering the resistance should then make the
+activation point higher but I’m not sure I noticed any change in my
+highly scientific testing (holding down a key exactly above the
+original activation point then reprogramming the resistance and seeing
+if the keyboard starts sending any keypress).&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;I2C&amp;gt;[ 0x30 0 0x34 ]
+I2C START BIT
+WRITE: 0x30 ACK
+WRITE: 0x00 ACK
+WRITE: 0x34 ACK
+I2C STOP BIT
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;Writing RDAC register (not persistent)&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;When approaching the upper limit for the resistance some keys stopped
+registering presses, some of them continued to work if really
+bottomed out hard. Was a bit surprised that the keys behaved so
+differently across the board, could not really find any connection
+between the placement of keys and which keys stopped working. Makes
+one wonder how the original activation point of the keys between keys
+differ.&lt;/p&gt;
+
+&lt;h3 id=&quot;wrap-up&quot;&gt;Wrap-up&lt;/h3&gt;
+
+&lt;!-- [Novatouch schematic](/assets/novatouch_schematic.eps) --&gt;
+&lt;p&gt;&lt;a href=&quot;/assets/images/novatouch_schematic.svg&quot; rel=&quot;lightbox&quot; title=&quot;Novatouch schematic&quot;&gt;&lt;img src=&quot;/assets/images/novatouch_schematic.svg&quot; alt=&quot;&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;In this first part of Novatouch teardown I made some analysing of the
+hardware and how the key matrix looks. In the next part I will do some
+analysis of the software and see how it can be modified to work more
+like I want.&lt;/p&gt;
+
+</description>
+                <link>http://vekkt0r.github.io/2015/02/13/novatouch-tkl-reverse-engineering-part-1</link>
+                <guid>http://vekkt0r.github.io/2015/02/13/novatouch-tkl-reverse-engineering-part-1</guid>
+                <pubDate>2015-02-13T20:42:00+01:00</pubDate>
+        </item>
+
+        <item>
+                <title>First Post</title>
+                <description>
+&lt;p&gt;So, some years after everybody else I have finally come around to
+creating a &lt;em&gt;blog&lt;/em&gt;. My intent is to write about different personal
+projects, both hardware and programming related. No thought that this
+will be found / read by so many people but more of a experiment to
+play around with documenting my projects to gain experience in
+techical writing. If somebody manages to find something interesting
+then that will be a nice bonus. Probably it will end up abandoned in a
+while like most peoples other blogs.&lt;/p&gt;
+
+&lt;p&gt;Some short information about myself: IAmA EE working as a consultant
+with Embedded Linux kernel and application development. Some of the
+areas I enjoy spending my time off on is sensor networks, reverse
+engineering, home automation and other small embedded projects.&lt;/p&gt;
+
+&lt;p&gt;The blog is setup using GitHub &lt;a href=&quot;https://pages.github.com/&quot;&gt;pages&lt;/a&gt; and &lt;a href=&quot;http://jekyllbootstrap.com/&quot;&gt;Jekyll&lt;/a&gt; which for me as a
+web-design-illiterate was very pleasant to setup and customize. Awesome to
+be able to write and publish without leaving Emacs and the
+terminal. With the existing themes it even looks acceptable (unlike
+something I would have designed :-)).&lt;/p&gt;
+
+</description>
+                <link>http://vekkt0r.github.io/2015/01/11/first-post</link>
+                <guid>http://vekkt0r.github.io/2015/01/11/first-post</guid>
+                <pubDate>2015-01-11T00:00:00+01:00</pubDate>
+        </item>
+
+
+</channel>
+</rss>

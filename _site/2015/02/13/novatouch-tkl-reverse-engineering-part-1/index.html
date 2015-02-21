@@ -1,0 +1,286 @@
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+   <title>Novatouch TKL Reverse Engineering - Part 1</title>
+   <meta name="author" content="Adam Engström" />
+   <link href="http://feeds.feedburner.com/" rel="alternate" title="your title" type="application/atom+xml" />
+
+   <!-- syntax highlighting CSS -->
+   <link rel="stylesheet" href="/assets/themes/tom/css/syntax.css" type="text/css" />
+
+   <!-- Homepage CSS -->
+   <link rel="stylesheet" href="/assets/themes/tom/css/screen.css" type="text/css" media="screen, projection" />
+
+   <!-- Typekit -->
+   <script type="text/javascript" src="http://use.typekit.com/jpd0pfm.js"></script>
+   <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+</head>
+<body>
+
+  <div class="site">
+    <div class="title">
+      <a href="/">Random projects</a>
+
+      <a class="extra" href="/archive.html">Archive</a>
+      <a class="extra" href="">Pages</a>
+      <a class="extra" href="/categories.html">Categories</a>
+      <a class="extra" href="/tags.html">Tags</a>
+    </div>
+  
+    
+<div id="post">
+  <h1>Novatouch TKL Reverse Engineering - Part 1</h1>
+  <p class="meta">
+    13 February 2015 
+    
+  </p>
+  
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<p>For a long time I’ve had a fascination for reverse engineering and
+modifying proprietary hardware to add new functions or work in a
+different way. I have never actually done any serious reverse
+engineering myself, just enjoying what other people have done and
+taken advantage of the cool stuff available (who doesn’t have an old
+[dd | Open]-WRT router laying around? :-)).</p>
+
+<p>To begin my adventures in reversing I start with one of the simplest
+devices available, a keyboard. The specific device I choose was a
+<a href="http://deskthority.net/wiki/Cooler_Master_NovaTouch_TKL">Cooler Master Novatouch TKL</a> which is a capacitive switch TKL
+(ten-key-less) keyboard. Most keyboards of this type have the ability
+to change the behaviour of the modifier keys with the help of DIP
+switches, for example switching the <code>Caps Lock</code> and <code>Control</code> control
+keys for better reachability. The problem with this keyboard is that
+no such thing is available.. Of course one could do this in software
+but this will be different for each OS and may not even be possible on
+computers where the user has limited permissions.</p>
+
+<p>This had irritated me for a while after getting the keyboard and when
+browsing around the internets and reading a <a href="http://imgur.com/a/CMqpt">review</a> of the keyboard
+there was also a teardown with some internal pictures. On one of the
+pictures I saw that there was a MSP430F5510 processor, this tickled my
+interest because I had just played around with MSP430 processors for
+evaluation on using them in my long range RF-modules for sensor
+networks (should do future a post on that). It also seemed like there was
+a connector looking very much like a debugging connector close to the
+processor. I immediately opened up my keyboard and started probing
+around with a multimeter!</p>
+
+<!-- ![Novatouch Pinout](/assets/novatouch_pinout.png) -->
+<p><a href="/assets/images/novatouch_pinout.png" rel="lightbox" title="Novatouch pinout"><img src="/assets/images/novatouch_pinout.png" alt="" /></a></p>
+
+<p>Correctamundo! All of the JTAG and Spy-Bi-Wire connections to the MSP
+was available in the connector. I whipped out my <a href="http://goodfet.sourceforge.net/">GoodFET</a> and crossed
+my fingers hoping that the code protection would not be enabled (not
+actually believing the memory would be readable). After fighting a bit
+with the (very broken) FTDI driver in OS X Yosemite I saw some life
+from the keyboard and the GoodFET, no code protection!? Managed to read
+out the complete BSL and main flash firmware with the GoodFET without
+any problems.</p>
+
+<p>So… What to do now? Maybe find out some more about the hardware
+before diving into the firmware?</p>
+
+<h3 id="hardware">Hardware</h3>
+
+<p>Some quick Google searches about the chips on the bottom of the
+circuit board gave an idea about how things was connected. Here are
+the most interesting ones:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Symbol</th>
+      <th>Chip</th>
+      <th>Function</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Z1</td>
+      <td>SN74LV07A</td>
+      <td>Hex buffer</td>
+    </tr>
+    <tr>
+      <td>Z2</td>
+      <td>SN74LV07A</td>
+      <td>Hex buffer</td>
+    </tr>
+    <tr>
+      <td>Z3</td>
+      <td>MSP430F5510</td>
+      <td>Microcontroller</td>
+    </tr>
+    <tr>
+      <td>Z5</td>
+      <td>SN74LV4051A</td>
+      <td>Analog (de)multiplexer</td>
+    </tr>
+    <tr>
+      <td>Z7</td>
+      <td>SN74LV07A</td>
+      <td>Analog (de)multiplexer</td>
+    </tr>
+    <tr>
+      <td>Z8</td>
+      <td>TP1684</td>
+      <td>Capacitive switch sense</td>
+    </tr>
+    <tr>
+      <td>Z9</td>
+      <td>AD5258BRMZ50</td>
+      <td>50k digital potentiometer</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>By looking at some existing <a href="https://raw.githubusercontent.com/tmk/tmk_keyboard/master/keyboard/hhkb/doc/HHKB.txt">information</a> about Topre keyboards it was
+easy to sketch out how the switch matrix probably looked.</p>
+
+<!-- ![Matrix sketch](/assets/novatouch_matrix_sketch.jpg) -->
+<p><a href="/assets/images/novatouch_matrix_sketch.jpg" rel="lightbox" title="Matrix sketch"><img src="/assets/images/novatouch_matrix_sketch.jpg" alt="Sketch of matrix" /></a></p>
+
+<p>The hardware is a little bit different from the HHKB, instead of using
+a BCD decoder to select row the Novatouch uses a hex buffer. This
+consumes some more IOs on the MSP but the function is the same.</p>
+
+<p>By controlling the row and column with the hex buffers and analog
+multiplexers the controller chooses which switch should be connected
+to the proprietary Topre capacitive switch sense chip. An interesting
+part is the digital potentiometer that is connected to the cap sense,
+seems like it is connected between pins 3 and 6 on the cap sense chip,
+unfortunately I was not able to find any data-sheet for the cap sense
+so I’m not sure about it’s function. Was hoping it would be connected
+to the I2C interface of the MSP so it would be easy to mess around
+with but it seems to be directly routed to an unpopulated
+header.</p>
+
+<h3 id="programming-the-digital-potentiometer">Programming the Digital Potentiometer</h3>
+
+<p><a href="/assets/images/novatouch_pot.jpg" rel="lightbox" title="Digital potentiometer programming"><img src="/assets/images/novatouch_pot.jpg" alt="" /></a></p>
+
+<!--![Digital Potentiometer Programming](/assets/novatouch_pot.jpg )-->
+
+<p>Interested in finding out more about what the digital potentiometer was
+used for I connected a BusPirate to the I2C bus of the
+<a href="http://www.analog.com/static/imported-files/data_sheets/AD5258.pdf">AD5258</a>.</p>
+
+<pre><code>I2C&gt;[ 0x30 0 [ 0x31 r ]
+I2C START BIT
+WRITE: 0x30 ACK
+WRITE: 0x00 ACK
+I2C START BIT
+WRITE: 0x31 ACK
+READ: 0x15 NACK
+I2C STOP BIT
+</code></pre>
+
+<p><em>Reading RDAC register</em></p>
+
+<p>Reading out the default value it seemed like the it was programmed to
+around <script type="math/tex">16 k\Omega</script> according to equation from data-sheet (ignoring
+the fact of device specific calibration which differs up to <script type="math/tex">\pm 30
+\%</script>..).</p>
+
+<script type="math/tex; mode=display">R_{WB}(D) = \frac{D}{64} \cdot R_{AB} + 2 \cdot R_{W}</script>
+
+<p>By changing the resistance the activation point of the keys changed. A
+higher resistance made the activation point get lower (the key needs
+to be pressed down deeper). Lowering the resistance should then make the
+activation point higher but I’m not sure I noticed any change in my
+highly scientific testing (holding down a key exactly above the
+original activation point then reprogramming the resistance and seeing
+if the keyboard starts sending any keypress).</p>
+
+<pre><code>I2C&gt;[ 0x30 0 0x34 ]
+I2C START BIT
+WRITE: 0x30 ACK
+WRITE: 0x00 ACK
+WRITE: 0x34 ACK
+I2C STOP BIT
+</code></pre>
+
+<p><em>Writing RDAC register (not persistent)</em></p>
+
+<p>When approaching the upper limit for the resistance some keys stopped
+registering presses, some of them continued to work if really
+bottomed out hard. Was a bit surprised that the keys behaved so
+differently across the board, could not really find any connection
+between the placement of keys and which keys stopped working. Makes
+one wonder how the original activation point of the keys between keys
+differ.</p>
+
+<h3 id="wrap-up">Wrap-up</h3>
+
+<!-- [Novatouch schematic](/assets/novatouch_schematic.eps) -->
+<p><a href="/assets/images/novatouch_schematic.svg" rel="lightbox" title="Novatouch schematic"><img src="/assets/images/novatouch_schematic.svg" alt="" /></a></p>
+
+<p>In this first part of Novatouch teardown I made some analysing of the
+hardware and how the key matrix looks. In the next part I will do some
+analysis of the software and see how it can be modified to work more
+like I want.</p>
+
+
+</div>
+
+<div id="related">
+  <h2>Related Posts</h2>
+  <ul class="posts">
+    
+      <li><span>11 Jan 2015</span> &raquo; <a href="/2015/01/11/first-post">First Post</a></li>
+    
+  </ul>
+</div>
+
+
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_developer = 1;
+    var disqus_shortname = 'aeen'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+
+  
+    <div class="footer">
+      <div class="contact">
+        <p>
+          Adam Engström<br />
+          Posts about my personal projects<br />
+          <a href='mailto:adreg@megalan.org'>adreg@megalan.org</a>
+        </p>
+      </div>
+      <div class="contact">
+        <p>
+          <a href="http://github.com/vekkt0r/">github.com/vekkt0r</a><br />
+          <a href="http://twitter.com//">twitter.com/</a><br />
+        </p>
+      </div>
+      <div class="rss">
+        <a href="http://feeds.feedburner.com/">
+          <img src="/assets/themes/tom/images/rss.png" alt="Subscribe to RSS Feed" />
+        </a>
+      </div>
+    </div>
+  </div>
+  <a href="http://github.com/vekkt0r"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" /></a>
+
+  
+</body>
+</html>
+
