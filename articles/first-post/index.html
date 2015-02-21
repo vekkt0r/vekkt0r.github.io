@@ -158,6 +158,42 @@ be able to write and publish without leaving Emacs and the
 terminal. With the existing themes it even looks acceptable (unlike
 something I would have designed…).</p>
 
+<p><em>Update 2015-02-22</em></p>
+
+<p><em>After using default Jekyll for a while I quite soon discovered that
+it was not as awesome as I first though. As soon as I started writing
+and wanted to include an image I found out the stock themes were quite
+bad at presenting images (no scaling, if including a huge image then
+it was presented in native resolution). Looking for alternatives I
+tried out some different plugins but most of them required using
+special liquid tags instead of normal markdown which heavily limits
+the portability of the raw posts.</em></p>
+
+<p><em>For a while I used Tom theme and changed the css file to limit the
+width of <code>img src</code> tag which kind of worked. Then I wanted to use some
+MathJax formulas and discovered the deployment to GitHub pages was no
+longer so smooth because plugins are not allowed (totally
+understandable though).</em></p>
+
+<p><em>Back to the drawing board.. What I ended up with was publishing the
+generated site instead of the Jekyll source on GitHub. There are many
+examples of how to do this but none of them were as simple as just
+pushing the code and letting GitHub handle generation.</em></p>
+
+<p><em>What I did was something like this:</em></p>
+
+<pre><code class="language-sh">git branch -M master source
+sed -i '/_site/d' .gitignore
+git add .gitignore
+git add _site/
+git commit -m "Add _site to vc'
+git push origin :master # Remove the currrent master from GitHub, had
+                        # to change the default branch under the repo
+                        # settings of GitHub to be able to delete
+git subtree push --prefix _site origin master # Publish the contents
+                                              # of _site to master branch
+</code></pre>
+
 
         
           <div id="disqus_thread"></div><!-- /#disqus_thread -->
