@@ -1,0 +1,379 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<title>Novatouch TKL Reverse Engineering - Part 1 &#8211; Projects</title>
+<meta name="description" content="Reverse engineering the hardware of the CoolerMaster Novatouch TKL keyboard">
+<meta name="keywords" content="">
+
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Novatouch TKL Reverse Engineering - Part 1">
+<meta name="twitter:description" content="Reverse engineering the hardware of the CoolerMaster Novatouch TKL keyboard">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="/images/IMG_1826.png">
+
+<!-- Open Graph -->
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Novatouch TKL Reverse Engineering - Part 1">
+<meta property="og:description" content="Reverse engineering the hardware of the CoolerMaster Novatouch TKL keyboard">
+<meta property="og:url" content="/articles/novatouch-tkl-reverse-engineering-part-1/">
+<meta property="og:site_name" content="Projects">
+
+
+
+
+
+<link rel="canonical" href="/articles/novatouch-tkl-reverse-engineering-part-1/">
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Projects Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<!-- Webfonts -->
+<script src="//use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+<!-- Icons -->
+<!-- 16x16 -->
+<link rel="shortcut icon" href="/favicon.ico">
+<!-- 32x32 -->
+<link rel="shortcut icon" href="/favicon.png">
+<!-- 57x57 (precomposed) for iPhone 3GS, pre-2011 iPod Touch and older Android devices -->
+<link rel="apple-touch-icon-precomposed" href="/images/apple-touch-icon-precomposed.png">
+<!-- 72x72 (precomposed) for 1st generation iPad, iPad 2 and iPad mini -->
+<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/apple-touch-icon-72x72-precomposed.png">
+<!-- 114x114 (precomposed) for iPhone 4, 4S, 5 and post-2011 iPod Touch -->
+<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/apple-touch-icon-114x114-precomposed.png">
+<!-- 144x144 (precomposed) for iPad 3rd and 4th generation -->
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/apple-touch-icon-144x144-precomposed.png">
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		        
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/articles/" >Articles</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/search/" >Search</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	
+</header><!-- /.masthead -->
+
+
+<div class="js-menu-screen menu-screen"></div>
+
+<div id="main" role="main">
+  <article class="hentry">
+    <img src="/images/IMG_1826.png" class="entry-feature-image" alt="Novatouch TKL Reverse Engineering - Part 1" style="margin-top:0;">
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <span class="entry-tags"></span>
+        
+          <h1 class="entry-title">Novatouch TKL Reverse Engineering - Part 1</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+        
+          <img src="/images/bio-photo.jpg" class="bio-photo" alt="Adam Engström bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Adam Engström</span></span>
+        <span class="entry-date date published"><time datetime="2015-02-13T20:42:00+01:00"><i class="fa fa-calendar-o"></i> February 13, 2015</time></span>
+        
+        
+        
+        
+      </footer>
+      <div class="entry-content">
+        <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<p>For a long time I’ve had a fascination for reverse engineering and
+modifying proprietary hardware to add new functions or work in a
+different way. I have never actually done any serious reverse
+engineering myself, just enjoying what other people have done and
+taken advantage of the cool stuff available (who doesn’t have an old
+[dd | Open]-WRT router laying around? :-)).</p>
+
+<p>To begin my adventures in reversing I start with one of the simplest
+devices available, a keyboard. The specific device I choose was a
+<a href="http://deskthority.net/wiki/Cooler_Master_NovaTouch_TKL">Cooler Master Novatouch TKL</a> which is a capacitive switch TKL
+(ten-key-less) keyboard. Most keyboards of this type have the ability
+to change the behaviour of the modifier keys with the help of DIP
+switches, for example switching the <code>Caps Lock</code> and <code>Control</code> control
+keys for better reachability. The problem with this keyboard is that
+no such thing is available.. Of course one could do this in software
+but this will be different for each OS and may not even be possible on
+computers where the user has limited permissions.</p>
+
+<p>This had irritated me for a while after getting the keyboard and when
+browsing around the internets and reading a <a href="http://imgur.com/a/CMqpt">review</a> of the keyboard
+there was also a teardown with some internal pictures. On one of the
+pictures I saw that there was a MSP430F5510 processor, this tickled my
+interest because I had just played around with MSP430 processors for
+evaluation on using them in my long range RF-modules for sensor
+networks (should do future a post on that). It also seemed like there was
+a connector looking very much like a debugging connector close to the
+processor. I immediately opened up my keyboard and started probing
+around with a multimeter!</p>
+
+<p><img src="/images/novatouch_pinout.png" alt="Programming header pinout" /></p>
+
+<p>Correctamundo! All of the JTAG and Spy-Bi-Wire connections to the MSP
+was available in the connector. I whipped out my <a href="http://goodfet.sourceforge.net/">GoodFET</a> and crossed
+my fingers hoping that the code protection would not be enabled (not
+actually believing the memory would be readable). After fighting a bit
+with the (very broken) FTDI driver in OS X Yosemite I saw some life
+from the keyboard and the GoodFET, no code protection!? Managed to read
+out the complete BSL and main flash firmware with the GoodFET without
+any problems.</p>
+
+<p>So… What to do now? Maybe find out some more about the hardware
+before diving into the firmware?</p>
+
+<h3 id="hardware">Hardware</h3>
+
+<p>Some quick Google searches about the chips on the bottom of the
+circuit board gave an idea about how things was connected. Here are
+the most interesting ones:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Symbol</th>
+      <th>Chip</th>
+      <th>Function</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Z1</td>
+      <td>SN74LV07A</td>
+      <td>Hex buffer</td>
+    </tr>
+    <tr>
+      <td>Z2</td>
+      <td>SN74LV07A</td>
+      <td>Hex buffer</td>
+    </tr>
+    <tr>
+      <td>Z3</td>
+      <td>MSP430F5510</td>
+      <td>Microcontroller</td>
+    </tr>
+    <tr>
+      <td>Z5</td>
+      <td>SN74LV4051A</td>
+      <td>Analog (de)multiplexer</td>
+    </tr>
+    <tr>
+      <td>Z7</td>
+      <td>SN74LV07A</td>
+      <td>Analog (de)multiplexer</td>
+    </tr>
+    <tr>
+      <td>Z8</td>
+      <td>TP1684</td>
+      <td>Capacitive switch sense</td>
+    </tr>
+    <tr>
+      <td>Z9</td>
+      <td>AD5258BRMZ50</td>
+      <td>50k digital potentiometer</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>By looking at some existing <a href="https://raw.githubusercontent.com/tmk/tmk_keyboard/master/keyboard/hhkb/doc/HHKB.txt">information</a> about Topre keyboards it was
+easy to sketch out how the switch matrix probably looked.</p>
+
+<p><img src="/images/novatouch_matrix_sketch.jpg" alt="Matrix sketch" /></p>
+
+<p>The hardware is a little bit different from the HHKB, instead of using
+a BCD decoder to select row the Novatouch uses a hex buffer. This
+consumes some more IOs on the MSP but the function is the same.</p>
+
+<p>By controlling the row and column with the hex buffers and analog
+multiplexers the controller chooses which switch should be connected
+to the proprietary Topre capacitive switch sense chip. An interesting
+part is the digital potentiometer that is connected to the cap sense,
+seems like it is connected between pins 3 and 6 on the cap sense chip,
+unfortunately I was not able to find any data-sheet for the cap sense
+so I’m not sure about it’s function. Was hoping it would be connected
+to the I2C interface of the MSP so it would be easy to mess around
+with but it seems to be directly routed to an unpopulated
+header.</p>
+
+<h3 id="programming-the-digital-potentiometer">Programming the Digital Potentiometer</h3>
+
+<p><img src="/images/novatouch_pot.jpg" alt="Digital Potentiometer Programming" /></p>
+
+<p>Interested in finding out more about what the digital potentiometer was
+used for I connected a BusPirate to the I2C bus of the
+<a href="http://www.analog.com/static/imported-files/data_sheets/AD5258.pdf">AD5258</a>.</p>
+
+<pre><code>I2C&gt;[ 0x30 0 [ 0x31 r ]
+I2C START BIT
+WRITE: 0x30 ACK
+WRITE: 0x00 ACK
+I2C START BIT
+WRITE: 0x31 ACK
+READ: 0x15 NACK
+I2C STOP BIT
+</code></pre>
+
+<p><em>Reading RDAC register</em></p>
+
+<p>Reading out the default value it seemed like the it was programmed to
+around <script type="math/tex">16 k\Omega</script> according to equation from data-sheet (ignoring
+the fact of device specific calibration which differs up to <script type="math/tex">\pm 30
+\%</script>..).</p>
+
+<script type="math/tex; mode=display">R_{WB}(D) = \frac{D}{64} \cdot R_{AB} + 2 \cdot R_{W}</script>
+
+<p>By changing the resistance the activation point of the keys changed. A
+higher resistance made the activation point get lower (the key needs
+to be pressed down deeper). Lowering the resistance should then make the
+activation point higher but I'm not sure I noticed any change in my
+highly scientific testing (holding down a key exactly above the
+original activation point then reprogramming the resistance and seeing
+if the keyboard starts sending any keypress).</p>
+
+<pre><code>I2C&gt;[ 0x30 0 0x34 ]
+I2C START BIT
+WRITE: 0x30 ACK
+WRITE: 0x00 ACK
+WRITE: 0x34 ACK
+I2C STOP BIT
+</code></pre>
+
+<p><em>Writing RDAC register (not persistent)</em></p>
+
+<p>When approaching the upper limit for the resistance some keys stopped
+registering presses, some of them continued to work if really
+bottomed out hard. Was a bit surprised that the keys behaved so
+differently across the board, could not really find any connection
+between the placement of keys and which keys stopped working. Makes
+one wonder how the original activation point of the keys between keys
+differ.</p>
+
+<h3 id="wrap-up">Wrap-up</h3>
+
+<p><img src="/images/novatouch_schematic.svg" alt="Novatouch schematic" /></p>
+
+<p>In this first part of Novatouch teardown I made some analysing of the
+hardware and how the key matrix looks. In the next part I will do some
+analysis of the software and see how it can be modified to work more
+like I want.</p>
+
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/articles/first-post/" class="btn" title="First Post">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2015 Adam Engström. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	
+	
+	
+	
+	
+	
+	
+	
+	
+  <a href="/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl = 
+ '//www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-58457222-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+	        
+
+</body>
+</html>
