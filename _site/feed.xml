@@ -2,13 +2,13 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
 <title type="text">Projects</title>
 <generator uri="https://github.com/jekyll/jekyll">Jekyll</generator>
-<link rel="self" type="application/atom+xml" href="http://vekkt0r.github.io/feed.xml" />
-<link rel="alternate" type="text/html" href="http://vekkt0r.github.io" />
-<updated>2015-02-22T12:18:33+01:00</updated>
-<id>http://vekkt0r.github.io/</id>
+<link rel="self" type="application/atom+xml" href="/feed.xml" />
+<link rel="alternate" type="text/html" href="" />
+<updated>2015-02-22T19:34:36+01:00</updated>
+<id>/</id>
 <author>
   <name>Adam Engström</name>
-  <uri>http://vekkt0r.github.io/</uri>
+  <uri>/</uri>
   <email>adreg@megalan.org</email>
 </author>
 
@@ -16,14 +16,330 @@
   
 
 <entry>
+  <title type="html"><![CDATA[Novatouch TKL Reverse Engineering - Part 2]]></title>
+  <link rel="alternate" type="text/html" href="/articles/novatouch-tkk-reverse-engineering-part-2/" />
+  <id>/articles/novatouch-tkk-reverse-engineering-part-2</id>
+  <published>2015-03-02T00:00:00+01:00</published>
+  <updated>2015-03-02T00:00:00+01:00</updated>
+  <author>
+    <name>Adam Engström</name>
+    <uri></uri>
+    <email>adreg@megalan.org</email>
+  </author>
+  <content type="html">
+    &lt;p&gt;As written in my first post on this subject I was not really happy
+with the default mapping of the keys in the Novatouch, so lets do some
+patching!&lt;/p&gt;
+
+&lt;h2 id=&quot;dumping-the-firmware&quot;&gt;Dumping the firmware&lt;/h2&gt;
+
+&lt;p&gt;Instead of using a GoodFET for flashing I’m now using a &lt;a href=&quot;http://www.ti.com/ww/en/launchpad/launchpads-msp430-msp-exp430g2.html&quot;&gt;Launchpad&lt;/a&gt;
+instead. This makes it possible to use the &lt;a href=&quot;http://mspdebug.sourceforge.net/&quot;&gt;mspdebug&lt;/a&gt; tool for remote
+debugging and flashing.&lt;/p&gt;
+
+&lt;p&gt;To be able to open the firmware file in IDA I used the &lt;a href=&quot;http://www.ti.com/tool/msp430-gcc-opensource&quot;&gt;msp-gcc&lt;/a&gt; tools
+to create an ELF file from the raw binary dump. Should be possible to
+import raw binaries but I did not manage to get it to work. With the
+ELF I don’t need to go through setting up entry address and memory
+details every time I re-import the file. Having the object files also
+makes it simple to link against new code we want to inject.&lt;/p&gt;
+
+&lt;p&gt;I have published some tools on &lt;a href=&quot;https://github.com/vekkt0r/novatools&quot;&gt;novatools&lt;/a&gt; repository with a Makefile
+that performs all the steps from reading out the firmware to creating
+the ELF file.&lt;/p&gt;
+
+&lt;p&gt;Basically what the Makefile does is:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Read out the full contents of the main flash with &lt;a href=&quot;http://mspdebug.sourceforge.net/&quot;&gt;mspdebug&lt;/a&gt; (0x8000 - 0xffff)&lt;/li&gt;
+  &lt;li&gt;Convert resulting ihex to raw binary&lt;/li&gt;
+  &lt;li&gt;Create separate binary files with the &lt;code&gt;.text&lt;/code&gt; and &lt;code&gt;.vectors&lt;/code&gt; section contents&lt;/li&gt;
+  &lt;li&gt;Create object file from the section binaries&lt;/li&gt;
+  &lt;li&gt;Create MSP430X ELF file from the object files&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The resulting ELF contains the correct entry address and processor
+model so things get a lot easier when using &lt;a href=&quot;http://www.ti.com/tool/msp430-gcc-opensource&quot;&gt;msp-gcc&lt;/a&gt; tools and
+IDA. Also it’s faster to flash the ELF because half of the contents of
+the raw binary is just 0xFF.&lt;/p&gt;
+
+&lt;h2 id=&quot;firmware-analysis&quot;&gt;Firmware analysis&lt;/h2&gt;
+
+&lt;p&gt;After spending some time in IDA identifying possible functions I got
+an overall picture of the program flow. Starting out with finding all
+the IO port manipulation instructions and going from there made things
+a lot easier (using the IO definitions I found out from the hardware
+analysis).&lt;/p&gt;
+
+&lt;p&gt;I also used the source code of the Texas Instruments
+&lt;a href=&quot;http://www.ti.com/tool/msp430usbdevpack&quot;&gt;MSP430 USB developers package&lt;/a&gt; as a reference to identify the USB
+functions of the firmware. My hopes that CoolerMaster was using the
+reference implementation from TI for USB was confirmed by checking for
+strings in the raw binary.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;$ strings main.elf | grep -i devel
+USB_DEVELOPERS_PACKAGE_3_20_00
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It seems like the reference implementation is used mostly “as-is” with
+some minor modifications. Some changes seem to be back-ported from a
+later version of the reference implementation because there are some
+functions that look to be more from the &lt;code&gt;4_00_00&lt;/code&gt; implementation than
+the &lt;code&gt;3_20_00&lt;/code&gt; implementation.&lt;/p&gt;
+
+&lt;p&gt;The next chapters describes the overall flow of the program. The
+flow charts exist just to give an high level understanding of the
+logic, each chapter describes a single function. All names for
+variables and functions are made up by me because all I have is the
+binary with addresses. It’s very possible I have gotten things wrong.&lt;/p&gt;
+
+&lt;h3 id=&quot;main-loop&quot;&gt;Main loop&lt;/h3&gt;
+
+&lt;p class=&quot;pull-right&quot;&gt;&lt;img src=&quot;/images/fw_main.svg&quot; alt=&quot;Mainloop&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The main loop does pretty much what’s expected, things like initialising
+variables and then start to call init functions for different
+subsystems, including USB.&lt;/p&gt;
+
+&lt;p&gt;We then start to run in a loop checking if USB is suspended or
+not. When USB is in suspend mode we still poll the key matrix too see
+if any key is pressed. If a key is pressed we send a USB wakeup.&lt;/p&gt;
+
+&lt;p&gt;When USB is active we continuously call the key sample function.&lt;/p&gt;
+
+&lt;h3 id=&quot;key-sample-function&quot;&gt;Key sample function&lt;/h3&gt;
+
+&lt;p class=&quot;pull-left&quot;&gt;&lt;img src=&quot;/images/fw_sample.svg&quot; alt=&quot;Key sample function&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The key sample function reads a single key from the matrix and then
+handles sending of pending USB reports. A number of USB endpoints are
+used but I won’t go into details about that. What’s interesting is
+that the USB key report used only has place for 6 keys (not including
+modifiers as they are kept as bits in the beginning of the report).&lt;/p&gt;
+
+&lt;p&gt;One of the “special features” of the Novatouch is the ability to press
+&lt;code&gt;fn + F1-F4&lt;/code&gt; for setting the repeat rate of the keyboard, called rapid
+fire. I guess it’s something gamers find useful. The actual repeating
+is done at the end of this function, where the current repeat rate is
+compared with a timer to see of the currently pressed key should be
+sent again.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code&gt;mux_and_read&lt;/code&gt; function is were all the magic happens.&lt;/p&gt;
+
+&lt;h3 id=&quot;key-mux-and-read-function&quot;&gt;Key mux and read function&lt;/h3&gt;
+
+&lt;p class=&quot;pull-right&quot;&gt;&lt;img src=&quot;/images/fw_mux.svg&quot; alt=&quot;Key mux and read function&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In this function the key mux circuits are controlled by setting the
+correct row and column for the key that is to be read. A counter keeps
+track of which key is currently read.&lt;/p&gt;
+
+&lt;p&gt;The key index counter is converted into column and row by the bit
+pattern &lt;code&gt;xCCCCRRR&lt;/code&gt; (R = Row, C = Col). The first &lt;code&gt;C&lt;/code&gt; controls which
+mux chip should be selected (right or left part of matrix), the two
+following &lt;code&gt;CC&lt;/code&gt; bits controls the column of the selected chip. The &lt;code&gt;RR&lt;/code&gt;
+bits selects the row. The counter is cleared when 0x80 is reached.&lt;/p&gt;
+
+&lt;p&gt;The current state of each key is kept in a bit packed array with 2
+bits for each key. In this array 0 means key is not pressed, 1 means
+it has just been pressed / is in debounce state and 2 means key is
+fully pressed.&lt;/p&gt;
+
+&lt;p&gt;There seems to be some special handling of the key when it’s in
+debounce state, before the key state is read from cap sense controller
+the &lt;code&gt;TP_prev&lt;/code&gt; IO is set and an extra sleep is performed.&lt;/p&gt;
+
+&lt;p&gt;After it has been determined if the key is fully pressed or not (key
+state == 2 or 0, debounce logic not shown in figure) the
+&lt;code&gt;handle_key_*&lt;/code&gt; function is called to handle up / down press. Since the
+key down function is very similar to the key up function I have not
+done any description of that one, basically just the inverse of the
+key up function.&lt;/p&gt;
+
+&lt;h3 id=&quot;key-down-function&quot;&gt;Key down function&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/fw_key_down.svg&quot; alt=&quot;Key down function&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;When a key is pressed some logic is done to determine what to do for
+the key. First thing that is done is that the key index is translated
+to a keycode with the help of &lt;code&gt;table_1&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;The keycode is used as index into another table, &lt;code&gt;table_2&lt;/code&gt; which
+contains which type of key the code corresponds to. The different
+types of keys can be seen in the figure above. Keys being of type 0 is
+passed through and directly put on the USB report queue to be sent to
+host.&lt;/p&gt;
+
+&lt;p&gt;The handling of rapid fire key combinations can also be found in this
+function. Whenever the &lt;code&gt;fn&lt;/code&gt; key is pressed a flag is set. If the flag
+is set and the current key is &lt;code&gt;F1-F4&lt;/code&gt; a variable is set that is used
+to send keys repeatedly at a specific interval when pressed.&lt;/p&gt;
+
+&lt;p&gt;The actual sending of the keys is done at the end of the key sample
+function where a timer is checked to see if enough time has passed for
+the key to be sent again.&lt;/p&gt;
+
+&lt;h2 id=&quot;patching&quot;&gt;Patching&lt;/h2&gt;
+
+&lt;p&gt;Now that we have an overview of the program flow we can do some
+changes to accomplish our goal; remap &lt;code&gt;caps&lt;/code&gt; to &lt;code&gt;ctrl&lt;/code&gt;. As can be
+seen in the overview in the previous chapter the first thing that
+happens when a key is pressed is that it’s looked up in &lt;code&gt;table_1&lt;/code&gt; to
+determine it’s keycode. Consequently we should be able to overwrite
+the keycode for &lt;code&gt;caps&lt;/code&gt; in the table with the code for &lt;code&gt;ctrl&lt;/code&gt; instead.&lt;/p&gt;
+
+&lt;p&gt;To determine which key index corresponds to which key we could either
+measure the connection between the mux circuits and each key on the
+PCB or use a debugger to break at each key press to check the
+index. To measure the connections between mux and key on PCB it would
+be necessary to fully disassemble the keyboard and remove the dome
+sheet, which I was not too keen to do. So I went with the debugger
+route.&lt;/p&gt;
+
+&lt;p&gt;Using &lt;a href=&quot;http://mspdebug.sourceforge.net/&quot;&gt;mspdebug&lt;/a&gt; to break on entry to the key pressed function I got the
+mapping between key index and keycode in the table below.&lt;/p&gt;
+
+&lt;p&gt;The row is the lowest 3 bits of key id and the column is the 4 bits
+above that.&lt;/p&gt;
+
+&lt;p&gt;(xCCCCRRR). I.e. tab = 5 + (2«3) = 21.
+&lt;img src=&quot;/images/novatouch_matrix.png&quot; alt=&quot;Key id vs key location&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Having this information it was easy to just replace the code for
+&lt;code&gt;caps&lt;/code&gt; (at index 20) with the code for &lt;code&gt;ctrl&lt;/code&gt; (found at index 17) and
+manually patch the binary.&lt;/p&gt;
+
+&lt;p&gt;After verifying that the new firmware worked I wrote a &lt;a href=&quot;https://github.com/vekkt0r/novatools/blob/master/patch.py&quot;&gt;Python utility&lt;/a&gt;
+for doing the patching automatically, this utility can be found in the
+&lt;a href=&quot;https://github.com/vekkt0r/novatools&quot;&gt;novatools&lt;/a&gt; repository.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/novatouch_patched.png&quot; alt=&quot;Patched binary diff&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Comparing the original and patched binaries we can see some differences.&lt;/p&gt;
+
+&lt;p&gt;First hunk at &lt;code&gt;0x830&lt;/code&gt; is our call into our own BSL entry check
+function (see next chapter). Second hunk at &lt;code&gt;0x2590&lt;/code&gt; is in &lt;code&gt;table_1&lt;/code&gt;
+where caps keycode is overwritten with the one for ctrl.&lt;/p&gt;
+
+&lt;p&gt;Last hunk is a switch between &lt;code&gt;backspace&lt;/code&gt; and &lt;code&gt;\&lt;/code&gt; keys.&lt;/p&gt;
+
+&lt;p&gt;Other than changing around keys we can also change the USB identifier
+strings and other fun stuff, see patch utility for the addresses of
+these.&lt;/p&gt;
+
+&lt;h2 id=&quot;bsl-entry-hook&quot;&gt;BSL entry hook&lt;/h2&gt;
+
+&lt;p&gt;To be able to do different key mappings in the future and upgrade the
+firmware without opening up they keyboard I added a hook for entering
+the BSL (Bootstrap Loader) by pressing a key combination. The BSL is
+pre-programmed on all MSP430 processors and can load new firmware via
+USB. Reading out the BSL memory area with GoodFET showed that the
+original BSL was still in place.&lt;/p&gt;
+
+&lt;p&gt;To enter BSL via code one should just call address &lt;code&gt;0x1000&lt;/code&gt;
+according to the documentation from TI. I did a lot of investigation
+in the firmware to see if there was any way of entering the BSL without
+changing the original firmware. Unfortunately I could not find any way
+to do so.&lt;/p&gt;
+
+&lt;p&gt;Instead I had to inject some code into the firmware to call the
+BSL. The hook is called at the end of the &lt;code&gt;fn + Fx&lt;/code&gt; key checking where
+I replaced a &lt;code&gt;mov&lt;/code&gt; instruction with a call to my own function.&lt;/p&gt;
+
+&lt;p&gt;At the end of rapid fire checking in key pressed function we
+originally had:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objdump&quot; data-lang=&quot;objdump&quot;&gt;&lt;span class=&quot;x&quot;&gt;...&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;8836:&lt;/span&gt;	&lt;span class=&quot;mh&quot;&gt;e2 d3 04 24 &lt;/span&gt;	&lt;span class=&quot;nf&quot;&gt;bis.b&lt;/span&gt;	&lt;span class=&quot;c&quot;&gt;#2,	&amp;amp;0x2404	;r3 as==10&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;883a:&lt;/span&gt;	&lt;span class=&quot;mh&quot;&gt;d2 42 2f 25 &lt;/span&gt;	&lt;span class=&quot;nf&quot;&gt;mov.b&lt;/span&gt;	&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0x252f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0x2530&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;883e:&lt;/span&gt;	&lt;span class=&quot;mh&quot;&gt;30 &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;25&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;8840:&lt;/span&gt;	&lt;span class=&quot;mh&quot;&gt;d2 42 2f 25 &lt;/span&gt;	&lt;span class=&quot;nf&quot;&gt;mov.b&lt;/span&gt;	&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0x252f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0x2531&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;8844:&lt;/span&gt;	&lt;span class=&quot;mh&quot;&gt;31 &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;25&lt;/span&gt;
+&lt;span class=&quot;x&quot;&gt;...&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We replace this with a call to our own function which we place at the
+end of the &lt;code&gt;.text&lt;/code&gt; section at address 0xa780:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objdump&quot; data-lang=&quot;objdump&quot;&gt;&lt;span class=&quot;x&quot;&gt;...&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;8836:&lt;/span&gt;	&lt;span class=&quot;mh&quot;&gt;e2 d3 04 24 &lt;/span&gt;	&lt;span class=&quot;nf&quot;&gt;bis.b&lt;/span&gt;	&lt;span class=&quot;c&quot;&gt;#2,	&amp;amp;0x2404	;r3 as==10&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;883a:&lt;/span&gt;	&lt;span class=&quot;mh&quot;&gt;b0 12 80 a7 &lt;/span&gt;	&lt;span class=&quot;nf&quot;&gt;calla&lt;/span&gt;	&lt;span class=&quot;c&quot;&gt;#0xa780&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;883e:&lt;/span&gt;	&lt;span class=&quot;mh&quot;&gt;03 43 &lt;/span&gt;          &lt;span class=&quot;s&quot;&gt;nop&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;8840:&lt;/span&gt;	&lt;span class=&quot;mh&quot;&gt;d2 42 2f 25 &lt;/span&gt;	&lt;span class=&quot;nf&quot;&gt;mov.b&lt;/span&gt;	&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0x252f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0x2531&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;8844:&lt;/span&gt;	&lt;span class=&quot;mh&quot;&gt;31 &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;25&lt;/span&gt;
+&lt;span class=&quot;x&quot;&gt;...&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The bytes for the &lt;code&gt;call&lt;/code&gt; instruction was calculated with the help of
+the opcode documentation for the 430X instruction set. Because the
+&lt;code&gt;call&lt;/code&gt; is two bytes shorter than the &lt;code&gt;mov&lt;/code&gt; instruction we put a &lt;code&gt;nop&lt;/code&gt;
+right after our jump.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;cp&quot;&gt;#include &amp;lt;intrinsics.h&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;cp&quot;&gt;#include &amp;lt;msp430f5510.h&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Declare pointers to variables we access in Novatouch fw&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;repeat_flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x2404&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;repeat_rate&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x252f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;num_for_7x_c1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x2530&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;check_bsl_enter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// We just replaced this copy to get here, perform it here instead&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// (although it seems to be redundant because it&amp;#39;s never actually&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// read)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num_for_7x_c1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;repeat_rate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Enter BSL if fn + f1 + f4 is pressed&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;repeat_flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x9&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;__dint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// Maybe need to slow down clock to 8 MHz also, not sure what&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// is configured by Novatouch fw&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;USBKEYPID&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x9628&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;USBCNF&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;~&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PUR_EN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;USBPWRCTL&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;~&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;VBOFFIE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;USBKEYPID&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x9600&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)())&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)();&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This code snipped is compiled into an object file with &lt;code&gt;msp430-gcc&lt;/code&gt;
+and linked together with our original firmware. For details look at
+the Makefile in &lt;a href=&quot;https://github.com/vekkt0r/novatools&quot;&gt;novatools&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Unfortunately this did not help me a whole lot because OS X promptly
+refused to enumerate the HID device the BSL exposes and therefore I
+could not even route the USB device to a virtual machine. Will need to
+find a PC to do the upgrade the next time I want to change the
+firmware.&lt;/p&gt;
+
+&lt;h2 id=&quot;further-work&quot;&gt;Further work&lt;/h2&gt;
+
+&lt;p&gt;This concludes my current adventures in Novatouch land. I have some
+things I would like to do further on that I have not had time to do:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Hook up oscilloscope to cap sense controller and try to understand
+how it works (need to find an oscilloscope first)&lt;/li&gt;
+  &lt;li&gt;Write HHKB fn layer to have easier access to arrows and F keys&lt;/li&gt;
+  &lt;li&gt;Or just port &lt;a href=&quot;https://github.com/tmk/tmk_keyboard&quot;&gt;tmk_keyboard&lt;/a&gt; or some other open source firmware&lt;/li&gt;
+  &lt;li&gt;Exploit USB stack to be able to enter BSL without ever opening the keyboard&lt;/li&gt;
+&lt;/ul&gt;
+
+
+    &lt;p&gt;&lt;a href=&quot;/articles/novatouch-tkk-reverse-engineering-part-2/&quot;&gt;Novatouch TKL Reverse Engineering - Part 2&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;&quot;&gt;Projects&lt;/a&gt; on March 02, 2015.&lt;/p&gt;
+  </content>
+</entry>
+
+
+  
+
+<entry>
   <title type="html"><![CDATA[Novatouch TKL Reverse Engineering - Part 1]]></title>
-  <link rel="alternate" type="text/html" href="http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1/" />
-  <id>http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1</id>
+  <link rel="alternate" type="text/html" href="/articles/novatouch-tkl-reverse-engineering-part-1/" />
+  <id>/articles/novatouch-tkl-reverse-engineering-part-1</id>
   <published>2015-02-13T20:42:00+01:00</published>
   <updated>2015-02-13T20:42:00+01:00</updated>
   <author>
     <name>Adam Engström</name>
-    <uri>http://vekkt0r.github.io</uri>
+    <uri></uri>
     <email>adreg@megalan.org</email>
   </author>
   <content type="html">
@@ -208,7 +524,7 @@ analysis of the software and see how it can be modified to work more
 like I want.&lt;/p&gt;
 
 
-    &lt;p&gt;&lt;a href=&quot;http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1/&quot;&gt;Novatouch TKL Reverse Engineering - Part 1&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;http://vekkt0r.github.io&quot;&gt;Projects&lt;/a&gt; on February 13, 2015.&lt;/p&gt;
+    &lt;p&gt;&lt;a href=&quot;/articles/novatouch-tkl-reverse-engineering-part-1/&quot;&gt;Novatouch TKL Reverse Engineering - Part 1&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;&quot;&gt;Projects&lt;/a&gt; on February 13, 2015.&lt;/p&gt;
   </content>
 </entry>
 
@@ -217,13 +533,13 @@ like I want.&lt;/p&gt;
 
 <entry>
   <title type="html"><![CDATA[First Post]]></title>
-  <link rel="alternate" type="text/html" href="http://vekkt0r.github.io/articles/first-post/" />
-  <id>http://vekkt0r.github.io/articles/first-post</id>
+  <link rel="alternate" type="text/html" href="/articles/first-post/" />
+  <id>/articles/first-post</id>
   <published>2015-01-11T13:13:00+01:00</published>
   <updated>2015-01-11T13:13:00+01:00</updated>
   <author>
     <name>Adam Engström</name>
-    <uri>http://vekkt0r.github.io</uri>
+    <uri></uri>
     <email>adreg@megalan.org</email>
   </author>
   <content type="html">
@@ -291,7 +607,7 @@ master. This way I keep both the source and generated files in the
 same repo.&lt;/em&gt;&lt;/p&gt;
 
 
-    &lt;p&gt;&lt;a href=&quot;http://vekkt0r.github.io/articles/first-post/&quot;&gt;First Post&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;http://vekkt0r.github.io&quot;&gt;Projects&lt;/a&gt; on January 11, 2015.&lt;/p&gt;
+    &lt;p&gt;&lt;a href=&quot;/articles/first-post/&quot;&gt;First Post&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;&quot;&gt;Projects&lt;/a&gt; on January 11, 2015.&lt;/p&gt;
   </content>
 </entry>
 

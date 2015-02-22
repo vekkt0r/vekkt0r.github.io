@@ -2,8 +2,16 @@
 
   
     {
+      "title"			: "Novatouch TKL Reverse Engineering - Part 2",
+      "link"			: "/articles/novatouch-tkk-reverse-engineering-part-2/",
+      "excerpt"		: "Reverse engineerign the firmware of the CoolerMaster Novatouch TKL keyboard"
+    }
+  
+
+  
+    ,{
       "title"			: "Novatouch TKL Reverse Engineering - Part 1",
-      "link"			: "http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1/",
+      "link"			: "/articles/novatouch-tkl-reverse-engineering-part-1/",
       "excerpt"		: "Reverse engineering the hardware of the CoolerMaster Novatouch TKL keyboard"
     }
   
@@ -11,7 +19,7 @@
   
     ,{
       "title"			: "First Post",
-      "link"			: "http://vekkt0r.github.io/articles/first-post/",
+      "link"			: "/articles/first-post/",
       "excerpt"		: "Introductionary post"
     }
   
@@ -33,7 +41,7 @@
   
     ,{
       "title"			: "About me",
-      "link"			: "http://vekkt0r.github.io/about/",
+      "link"			: "/about/",
       "excerpt"		: "So Simple is a responsive Jekyll theme for your words and images."
     }
   
