@@ -5,7 +5,7 @@ excerpt: "Reverse engineering the hardware of the CoolerMaster Novatouch TKL key
 description: ""
 date: 2015-02-13 19:42:00
 categories: articles
-tags: []
+tags: [keyboards]
 image:
   feature: IMG_1826.png
 ---

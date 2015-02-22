@@ -5,7 +5,7 @@ locale: en_US
 description: Posts about my personal hobby projects
 logo: oshw.png
 search: true
-# url: http://localhost:4000
+url: http://vekkt0r.github.io
 production_url: http://vekkt0r.github.io
 
 # Jekyll configuration
@@ -42,7 +42,7 @@ owner:
   google:
     plus: #username
     analytics: 'UA-58457222-1'
-    verify:
+    verify: 'Gn_u8ZMrJzM7KVBsjOKhCC-64XV5rP7vZ8BVEPvcIvc'
     ad-client:
     ad-slot: 
   bing-verify:
