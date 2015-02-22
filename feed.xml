@@ -2,13 +2,13 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
 <title type="text">Projects</title>
 <generator uri="https://github.com/jekyll/jekyll">Jekyll</generator>
-<link rel="self" type="application/atom+xml" href="/feed.xml" />
-<link rel="alternate" type="text/html" href="" />
-<updated>2015-02-21T17:15:31+01:00</updated>
-<id>/</id>
+<link rel="self" type="application/atom+xml" href="http://vekkt0r.github.io/feed.xml" />
+<link rel="alternate" type="text/html" href="http://vekkt0r.github.io" />
+<updated>2015-02-22T12:06:42+01:00</updated>
+<id>http://vekkt0r.github.io/</id>
 <author>
   <name>Adam Engström</name>
-  <uri>/</uri>
+  <uri>http://vekkt0r.github.io/</uri>
   <email>adreg@megalan.org</email>
 </author>
 
@@ -17,13 +17,13 @@
 
 <entry>
   <title type="html"><![CDATA[Novatouch TKL Reverse Engineering - Part 1]]></title>
-  <link rel="alternate" type="text/html" href="/articles/novatouch-tkl-reverse-engineering-part-1/" />
-  <id>/articles/novatouch-tkl-reverse-engineering-part-1</id>
+  <link rel="alternate" type="text/html" href="http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1/" />
+  <id>http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1</id>
   <published>2015-02-13T20:42:00+01:00</published>
   <updated>2015-02-13T20:42:00+01:00</updated>
   <author>
     <name>Adam Engström</name>
-    <uri></uri>
+    <uri>http://vekkt0r.github.io</uri>
     <email>adreg@megalan.org</email>
   </author>
   <content type="html">
@@ -208,7 +208,7 @@ analysis of the software and see how it can be modified to work more
 like I want.&lt;/p&gt;
 
 
-    &lt;p&gt;&lt;a href=&quot;/articles/novatouch-tkl-reverse-engineering-part-1/&quot;&gt;Novatouch TKL Reverse Engineering - Part 1&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;&quot;&gt;Projects&lt;/a&gt; on February 13, 2015.&lt;/p&gt;
+    &lt;p&gt;&lt;a href=&quot;http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1/&quot;&gt;Novatouch TKL Reverse Engineering - Part 1&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;http://vekkt0r.github.io&quot;&gt;Projects&lt;/a&gt; on February 13, 2015.&lt;/p&gt;
   </content>
 </entry>
 
@@ -217,13 +217,13 @@ like I want.&lt;/p&gt;
 
 <entry>
   <title type="html"><![CDATA[First Post]]></title>
-  <link rel="alternate" type="text/html" href="/articles/first-post/" />
-  <id>/articles/first-post</id>
+  <link rel="alternate" type="text/html" href="http://vekkt0r.github.io/articles/first-post/" />
+  <id>http://vekkt0r.github.io/articles/first-post</id>
   <published>2015-01-11T13:13:00+01:00</published>
   <updated>2015-01-11T13:13:00+01:00</updated>
   <author>
     <name>Adam Engström</name>
-    <uri></uri>
+    <uri>http://vekkt0r.github.io</uri>
     <email>adreg@megalan.org</email>
   </author>
   <content type="html">
@@ -291,7 +291,7 @@ master. This way I keep both the source and generated files in the
 same repo.&lt;/em&gt;&lt;/p&gt;
 
 
-    &lt;p&gt;&lt;a href=&quot;/articles/first-post/&quot;&gt;First Post&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;&quot;&gt;Projects&lt;/a&gt; on January 11, 2015.&lt;/p&gt;
+    &lt;p&gt;&lt;a href=&quot;http://vekkt0r.github.io/articles/first-post/&quot;&gt;First Post&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;http://vekkt0r.github.io&quot;&gt;Projects&lt;/a&gt; on January 11, 2015.&lt;/p&gt;
   </content>
 </entry>
 
