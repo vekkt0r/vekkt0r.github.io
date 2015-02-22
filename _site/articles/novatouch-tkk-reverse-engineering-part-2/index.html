@@ -18,14 +18,14 @@
 
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="/images/novatouch_sw.jpg">
+<meta name="twitter:image" content="http://vekkt0r.github.io/images/novatouch_sw.jpg">
 
 <!-- Open Graph -->
 <meta property="og:locale" content="en_US">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Novatouch TKL Reverse Engineering - Part 2">
 <meta property="og:description" content="Reverse engineerign the firmware of the CoolerMaster Novatouch TKL keyboard">
-<meta property="og:url" content="/articles/novatouch-tkk-reverse-engineering-part-2/">
+<meta property="og:url" content="http://vekkt0r.github.io/articles/novatouch-tkk-reverse-engineering-part-2/">
 <meta property="og:site_name" content="Projects">
 
 <!-- Webmaster Tools verfication -->
@@ -33,8 +33,8 @@
 
 
 
-<link rel="canonical" href="/articles/novatouch-tkk-reverse-engineering-part-2/">
-<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Projects Feed">
+<link rel="canonical" href="http://vekkt0r.github.io/articles/novatouch-tkk-reverse-engineering-part-2/">
+<link href="http://vekkt0r.github.io/feed.xml" type="application/atom+xml" rel="alternate" title="Projects Feed">
 
 <!-- http://t.co/dKP3o1e -->
 <meta name="HandheldFriendly" content="True">
@@ -42,7 +42,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- For all browsers -->
-<link rel="stylesheet" href="/assets/css/main.css">
+<link rel="stylesheet" href="http://vekkt0r.github.io/assets/css/main.css">
 <!-- Webfonts -->
 <script src="//use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
 
@@ -50,26 +50,26 @@
 
 <!-- HTML5 Shiv and Media Query Support -->
 <!--[if lt IE 9]>
-  <script src="/assets/js/vendor/html5shiv.min.js"></script>
-  <script src="/assets/js/vendor/respond.min.js"></script>
+  <script src="http://vekkt0r.github.io/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="http://vekkt0r.github.io/assets/js/vendor/respond.min.js"></script>
 <![endif]-->
 
 <!-- Modernizr -->
-<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+<script src="http://vekkt0r.github.io/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
 
 <!-- Icons -->
 <!-- 16x16 -->
-<link rel="shortcut icon" href="/favicon.ico">
+<link rel="shortcut icon" href="http://vekkt0r.github.io/favicon.ico">
 <!-- 32x32 -->
-<link rel="shortcut icon" href="/favicon.png">
+<link rel="shortcut icon" href="http://vekkt0r.github.io/favicon.png">
 <!-- 57x57 (precomposed) for iPhone 3GS, pre-2011 iPod Touch and older Android devices -->
-<link rel="apple-touch-icon-precomposed" href="/images/apple-touch-icon-precomposed.png">
+<link rel="apple-touch-icon-precomposed" href="http://vekkt0r.github.io/images/apple-touch-icon-precomposed.png">
 <!-- 72x72 (precomposed) for 1st generation iPad, iPad 2 and iPad mini -->
-<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/apple-touch-icon-72x72-precomposed.png">
+<link rel="apple-touch-icon-precomposed" sizes="72x72" href="http://vekkt0r.github.io/images/apple-touch-icon-72x72-precomposed.png">
 <!-- 114x114 (precomposed) for iPhone 4, 4S, 5 and post-2011 iPod Touch -->
-<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/apple-touch-icon-114x114-precomposed.png">
+<link rel="apple-touch-icon-precomposed" sizes="114x114" href="http://vekkt0r.github.io/images/apple-touch-icon-114x114-precomposed.png">
 <!-- 144x144 (precomposed) for iPad 3rd and 4th generation -->
-<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/apple-touch-icon-144x144-precomposed.png">
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://vekkt0r.github.io/images/apple-touch-icon-144x144-precomposed.png">
 
 </head>
 
@@ -82,22 +82,22 @@
 		    
 		        
 		    
-		    <li><a href="/about/" >About</a></li>
+		    <li><a href="http://vekkt0r.github.io/about/" >About</a></li>
 		  
 		    
 		        
 		    
-		    <li><a href="/articles/" >Articles</a></li>
+		    <li><a href="http://vekkt0r.github.io/articles/" >Articles</a></li>
 		  
 		    
 		        
 		    
-		    <li><a href="/blog/" >Blog</a></li>
+		    <li><a href="http://vekkt0r.github.io/blog/" >Blog</a></li>
 		  
 		    
 		        
 		    
-		    <li><a href="/search/" >Search</a></li>
+		    <li><a href="http://vekkt0r.github.io/search/" >Search</a></li>
 		  
 	    </ul>
 	</nav>
@@ -108,7 +108,7 @@
 <header class="masthead">
 	
 		<div class="wrap">
-			<a href="/" class="site-logo" rel="home" title="Projects"><img src="/images/oshw.png" width="200" height="200" alt="Projects logo" class="animated bounceInDown"></a>
+			<a href="http://vekkt0r.github.io/" class="site-logo" rel="home" title="Projects"><img src="http://vekkt0r.github.io/images/oshw.png" width="200" height="200" alt="Projects logo" class="animated bounceInDown"></a>
 		</div>
 	
 </header><!-- /.masthead -->
@@ -118,10 +118,10 @@
 
 <div id="main" role="main">
   <article class="hentry">
-    <img src="/images/novatouch_sw.jpg" class="entry-feature-image" alt="Novatouch TKL Reverse Engineering - Part 2" >
+    <img src="http://vekkt0r.github.io/images/novatouch_sw.jpg" class="entry-feature-image" alt="Novatouch TKL Reverse Engineering - Part 2" >
     <div class="entry-wrapper">
       <header class="entry-header">
-        <span class="entry-tags"><a href="/tags/#keyboards" title="Pages tagged keyboards">keyboards</a></span>
+        <span class="entry-tags"><a href="http://vekkt0r.github.io/tags/#keyboards" title="Pages tagged keyboards">keyboards</a></span>
         
           <h1 class="entry-title">Novatouch TKL Reverse Engineering - Part 2</h1>
         
@@ -130,7 +130,7 @@
         
         
         
-          <img src="/images/bio-photo.jpg" class="bio-photo" alt="Adam Engström bio photo"></a>
+          <img src="http://vekkt0r.github.io/images/bio-photo.jpg" class="bio-photo" alt="Adam Engström bio photo"></a>
         
         <span class="author vcard">By <span class="fn">Adam Engström</span></span>
         <span class="entry-date date published"><time datetime="2015-03-02T00:00:00+01:00"><i class="fa fa-calendar-o"></i> March 02, 2015</time></span>
@@ -140,7 +140,7 @@
         
       </footer>
       <div class="entry-content">
-        <p>As written in my first post on this subject I was not really happy
+        <p>As written in my <a href="http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1/">first post</a> on this subject I was not really happy
 with the default mapping of the keys in the Novatouch, so lets do some
 patching!</p>
 
@@ -154,7 +154,7 @@ debugging and flashing.</p>
 to create an ELF file from the raw binary dump. Should be possible to
 import raw binaries but I did not manage to get it to work. With the
 ELF I don’t need to go through setting up entry address and memory
-details every time I re-import the file. Having the object files also
+details every time I re-import the binary. Having the object files also
 makes it simple to link against new code we want to inject.</p>
 
 <p>I have published some tools on <a href="https://github.com/vekkt0r/novatools">novatools</a> repository with a Makefile
@@ -167,6 +167,8 @@ the ELF file.</p>
   <li>Read out the full contents of the main flash with <a href="http://mspdebug.sourceforge.net/">mspdebug</a> (0x8000 - 0xffff)</li>
   <li>Convert resulting ihex to raw binary</li>
   <li>Create separate binary files with the <code>.text</code> and <code>.vectors</code> section contents</li>
+  <li>Do some pathing of the text section</li>
+  <li>Compile code to inject to object file</li>
   <li>Create object file from the section binaries</li>
   <li>Create MSP430X ELF file from the object files</li>
 </ol>
@@ -200,11 +202,23 @@ later version of the reference implementation because there are some
 functions that look to be more from the <code>4_00_00</code> implementation than
 the <code>3_20_00</code> implementation.</p>
 
+<p>The firmware uses mostly global variables and barely any local
+variables, not even via function arguments. This made it easier to
+figure out each function whenever the purpose of a global variable was
+identified.</p>
+
 <p>The next chapters describes the overall flow of the program. The
 flow charts exist just to give an high level understanding of the
 logic, each chapter describes a single function. All names for
 variables and functions are made up by me because all I have is the
 binary with addresses. It’s very possible I have gotten things wrong.</p>
+
+<p>The sleep calls are called <code>sleep_us()</code> but I have no idea whether
+it’s actually microseconds. The function loops over a nop (3
+instructions per iteration) the number of times specified in argument
+so might as well be nanoseconds, depends on what frequency the MSP is
+clocked in. Just something I guessed when naming the functions and
+never bothered to look up.</p>
 
 <h3 id="main-loop">Main loop</h3>
 
@@ -214,11 +228,12 @@ binary with addresses. It’s very possible I have gotten things wrong.</p>
 variables and then start to call init functions for different
 subsystems, including USB.</p>
 
-<p>We then start to run in a loop checking if USB is suspended or
-not. When USB is in suspend mode we still poll the key matrix too see
-if any key is pressed. If a key is pressed we send a USB wakeup.</p>
+<p>A loop is then entered where it’s first checked if USB is suspended or
+not. When USB is in suspend mode the key matrix is still polled to see
+if any key is pressed. If a key is pressed an USB wakeup is sent to
+computer.</p>
 
-<p>When USB is active we continuously call the key sample function.</p>
+<p>When USB is active the key sample function is continuously called.</p>
 
 <h3 id="key-sample-function">Key sample function</h3>
 
@@ -334,7 +349,8 @@ for doing the patching automatically, this utility can be found in the
 function (see next chapter). Second hunk at <code>0x2590</code> is in <code>table_1</code>
 where caps keycode is overwritten with the one for ctrl.</p>
 
-<p>Last hunk is a switch between <code>backspace</code> and <code>\</code> keys.</p>
+<p>Last hunk switches the <code>backspace</code> and <code>\</code> keys to get a layout closer
+to HHKBr keyboard.</p>
 
 <p>Other than changing around keys we can also change the USB identifier
 strings and other fun stuff, see patch utility for the addresses of
@@ -381,7 +397,7 @@ end of the <code>.text</code> section at address 0xa780:</p>
     <span class="nl">8844:</span>	<span class="mh">31 </span><span class="s">25</span>
 <span class="x">...</span></code></pre></div>
 
-<p>The bytes for the <code>call</code> instruction was calculated with the help of
+<p>The opcode for the <code>call</code> instruction was calculated with the help of
 the opcode documentation for the 430X instruction set. Because the
 <code>call</code> is two bytes shorter than the <code>mov</code> instruction we put a <code>nop</code>
 right after our jump.</p>
@@ -425,8 +441,15 @@ firmware.</p>
 
 <h2 id="further-work">Further work</h2>
 
-<p>This concludes my current adventures in Novatouch land. I have some
-things I would like to do further on that I have not had time to do:</p>
+<p>This concludes my current adventures in Novatouch land. In
+retrospective when reading this post it feels like I could have left
+out half of it and just write about the interesting parts (patching
+and injecting code) instead of trying to explain the whole program
+flow. Well, since this is an experiment in trying to get better at
+writing at least I have something to think about for the next post.</p>
+
+<p>Therea are some things I would like to do further work on that I have
+not yet had time for:</p>
 
 <ul>
   <li>Hook up oscilloscope to cap sense controller and try to understand
@@ -467,7 +490,7 @@ how it works (need to find an oscilloscope first)</li>
     </div><!-- /.entry-wrapper -->
     <nav class="pagination" role="navigation">
       
-        <a href="/articles/novatouch-tkl-reverse-engineering-part-1/" class="btn" title="Novatouch TKL Reverse Engineering - Part 1">Previous</a>
+        <a href="http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1/" class="btn" title="Novatouch TKL Reverse Engineering - Part 1">Previous</a>
       
       
     </nav><!-- /.pagination -->
@@ -489,18 +512,18 @@ how it works (need to find an oscilloscope first)</li>
 	
 	
 	
-  <a href="/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+  <a href="http://vekkt0r.github.io/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
 </div><!-- /.social-icons -->
   </footer>
 </div><!-- /.footer-wrapper -->
 
 <script type="text/javascript">
-  var BASE_URL = '';
+  var BASE_URL = 'http://vekkt0r.github.io';
 </script>
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
-<script src="/assets/js/scripts.min.js"></script>
+<script>window.jQuery || document.write('<script src="http://vekkt0r.github.io/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="http://vekkt0r.github.io/assets/js/scripts.min.js"></script>
 
 
 <script>

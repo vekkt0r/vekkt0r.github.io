@@ -10,9 +10,11 @@ image:
     feature: novatouch_sw.jpg
 ---
 
-As written in my first post on this subject I was not really happy
+As written in my [first post] on this subject I was not really happy
 with the default mapping of the keys in the Novatouch, so lets do some
 patching!
+
+[first post]:http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1/
 
 ## Dumping the firmware ##
 
@@ -24,7 +26,7 @@ To be able to open the firmware file in IDA I used the [msp-gcc] tools
 to create an ELF file from the raw binary dump. Should be possible to
 import raw binaries but I did not manage to get it to work. With the
 ELF I don't need to go through setting up entry address and memory
-details every time I re-import the file. Having the object files also
+details every time I re-import the binary. Having the object files also
 makes it simple to link against new code we want to inject.
 
 I have published some tools on [novatools] repository with a Makefile
@@ -36,6 +38,8 @@ Basically what the Makefile does is:
 1. Read out the full contents of the main flash with [mspdebug] (0x8000 - 0xffff)
 1. Convert resulting ihex to raw binary
 1. Create separate binary files with the `.text` and `.vectors` section contents
+1. Do some pathing of the text section
+1. Compile code to inject to object file
 1. Create object file from the section binaries
 1. Create MSP430X ELF file from the object files
 
@@ -74,11 +78,23 @@ later version of the reference implementation because there are some
 functions that look to be more from the `4_00_00` implementation than
 the `3_20_00` implementation.
 
+The firmware uses mostly global variables and barely any local
+variables, not even via function arguments. This made it easier to
+figure out each function whenever the purpose of a global variable was
+identified.
+
 The next chapters describes the overall flow of the program. The
 flow charts exist just to give an high level understanding of the
 logic, each chapter describes a single function. All names for
 variables and functions are made up by me because all I have is the
 binary with addresses. It's very possible I have gotten things wrong.
+
+The sleep calls are called `sleep_us()` but I have no idea whether
+it's actually microseconds. The function loops over a nop (3
+instructions per iteration) the number of times specified in argument
+so might as well be nanoseconds, depends on what frequency the MSP is
+clocked in. Just something I guessed when naming the functions and
+never bothered to look up.
 
 ### Main loop ###
 
@@ -89,11 +105,12 @@ The main loop does pretty much what's expected, things like initialising
 variables and then start to call init functions for different
 subsystems, including USB.
 
-We then start to run in a loop checking if USB is suspended or
-not. When USB is in suspend mode we still poll the key matrix too see
-if any key is pressed. If a key is pressed we send a USB wakeup.
+A loop is then entered where it's first checked if USB is suspended or
+not. When USB is in suspend mode the key matrix is still polled to see
+if any key is pressed. If a key is pressed an USB wakeup is sent to
+computer.
 
-When USB is active we continuously call the key sample function.
+When USB is active the key sample function is continuously called.
 
 ### Key sample function ###
 
@@ -213,7 +230,8 @@ First hunk at `0x830` is our call into our own BSL entry check
 function (see next chapter). Second hunk at `0x2590` is in `table_1`
 where caps keycode is overwritten with the one for ctrl.
 
-Last hunk is a switch between `backspace` and `\` keys.
+Last hunk switches the `backspace` and `\` keys to get a layout closer
+to HHKBr keyboard.
 
 Other than changing around keys we can also change the USB identifier
 strings and other fun stuff, see patch utility for the addresses of
@@ -265,7 +283,7 @@ end of the `.text` section at address 0xa780:
 ...
 {% endhighlight objdump %}
 
-The bytes for the `call` instruction was calculated with the help of
+The opcode for the `call` instruction was calculated with the help of
 the opcode documentation for the 430X instruction set. Because the
 `call` is two bytes shorter than the `mov` instruction we put a `nop`
 right after our jump.
@@ -311,8 +329,15 @@ firmware.
 
 ## Further work ##
 
-This concludes my current adventures in Novatouch land. I have some
-things I would like to do further on that I have not had time to do:
+This concludes my current adventures in Novatouch land. In
+retrospective when reading this post it feels like I could have left
+out half of it and just write about the interesting parts (patching
+and injecting code) instead of trying to explain the whole program
+flow. Well, since this is an experiment in trying to get better at
+writing at least I have something to think about for the next post.
+
+Therea are some things I would like to do further work on that I have
+not yet had time for:
 
 - Hook up oscilloscope to cap sense controller and try to understand
   how it works (need to find an oscilloscope first)
