@@ -11,27 +11,32 @@ image:
 ---
 
 As written in my [first post] on this subject I was not really happy
-with the default mapping of the keys in the Novatouch, so lets do some
-patching!
+with the default mapping of the keys in the Novatouch, this is a
+writeup of the steps I went through to patch the firmware in the
+keyboard for a different behaviour. The changes include patching the
+default key mapping and also adding a hook for entering the TI BSL
+when a specific key combination is pressed.
 
-[first post]:http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1/
+[first post]:{% post_url articles/2015-02-13-novatouch-tkl-reverse-engineering-part-1 %}
 
-## Dumping the firmware ##
+## Dumping the original firmware ##
 
-Instead of using a GoodFET for flashing I'm now using a [Launchpad]
-instead. This makes it possible to use the [mspdebug] tool for remote
-debugging and flashing.
+Originally I used a GoodFET for flashing but since then I switched to
+a [Launchpad] instead. This made it possible to use the [mspdebug]
+tool for remote debugging and flashing. The programming header pinout
+for JTAG / SWD can be found in the [last] post.
 
-To be able to open the firmware file in IDA I used the [msp-gcc] tools
-to create an ELF file from the raw binary dump. Should be possible to
-import raw binaries but I did not manage to get it to work. With the
-ELF I don't need to go through setting up entry address and memory
-details every time I re-import the binary. Having the object files also
-makes it simple to link against new code we want to inject.
+To be able to open the firmware file in IDA I used objdump from
+[msp-gcc] toolchain to create an ELF file from the raw binary
+dump. Should be possible to import raw binaries into IDA but I did not
+manage to get it to work in a timely manner. With the ELF I don't need
+to go through setting up entry address and memory details every time I
+re-import the binary. Also, having the object files also makes it simple to
+link against new code we want to inject.
 
-I have published some tools on [novatools] repository with a Makefile
-that performs all the steps from reading out the firmware to creating
-the ELF file.
+I have published some tools in my [novatools] repository with a
+Makefile that performs all the steps from reading out the firmware to
+creating the ELF file.
 
 Basically what the Makefile does is:
 
@@ -39,7 +44,7 @@ Basically what the Makefile does is:
 1. Convert resulting ihex to raw binary
 1. Create separate binary files with the `.text` and `.vectors` section contents
 1. Do some pathing of the text section
-1. Compile code to inject to object file
+1. Compile code to inject into the final ELF
 1. Create object file from the section binaries
 1. Create MSP430X ELF file from the object files
 
@@ -48,6 +53,7 @@ model so things get a lot easier when using [msp-gcc] tools and
 IDA. Also it's faster to flash the ELF because half of the contents of
 the raw binary is just 0xFF.
 
+[last]:{% post_url articles/2015-02-13-novatouch-tkl-reverse-engineering-part-1 %}
 [Launchpad]:http://www.ti.com/ww/en/launchpad/launchpads-msp430-msp-exp430g2.html
 [mspdebug]:http://mspdebug.sourceforge.net/
 [msp-gcc]:http://www.ti.com/tool/msp430-gcc-opensource
@@ -58,7 +64,7 @@ the raw binary is just 0xFF.
 After spending some time in IDA identifying possible functions I got
 an overall picture of the program flow. Starting out with finding all
 the IO port manipulation instructions and going from there made things
-a lot easier (using the IO definitions I found out from the hardware
+a lot easier (using the IO pin definitions I found out from the hardware
 analysis).
 
 I also used the source code of the Texas Instruments
@@ -75,8 +81,8 @@ USB_DEVELOPERS_PACKAGE_3_20_00
 It seems like the reference implementation is used mostly "as-is" with
 some minor modifications. Some changes seem to be back-ported from a
 later version of the reference implementation because there are some
-functions that look to be more from the `4_00_00` implementation than
-the `3_20_00` implementation.
+functions that look to be more from the `4_00_00` version than
+`3_20_00`.
 
 The firmware uses mostly global variables and barely any local
 variables, not even via function arguments. This made it easier to
@@ -125,10 +131,10 @@ modifiers as they are kept as bits in the beginning of the report).
 
 One of the "special features" of the Novatouch is the ability to press
 `fn + F1-F4` for setting the repeat rate of the keyboard, called rapid
-fire. I guess it's something gamers find useful. The actual repeating
-is done at the end of this function, where the current repeat rate is
-compared with a timer to see of the currently pressed key should be
-sent again.
+fire. Totally useless function for me but I guess it's something
+gamers find useful. The actual repeating is done at the end of this
+function, where the current repeat rate is compared with a timer to
+see of the currently pressed key should be sent again.
 
 The `mux_and_read` function is were all the magic happens.
 
@@ -171,11 +177,11 @@ When a key is pressed some logic is done to determine what to do for
 the key. First thing that is done is that the key index is translated
 to a keycode with the help of `table_1`.
 
-The keycode is used as index into another table, `table_2` which
+The keycode is used as index into another table (`table_2`) which
 contains which type of key the code corresponds to. The different
-types of keys can be seen in the figure above. Keys being of type 0 is
-passed through and directly put on the USB report queue to be sent to
-host.
+types of keys can be seen in the figure above (normal, mod, led). Keys
+being of type 0 is passed through and directly put on the USB report
+queue to be sent to host.
 
 The handling of rapid fire key combinations can also be found in this
 function. Whenever the `fn` key is pressed a flag is set. If the flag
@@ -198,12 +204,12 @@ determine it's keycode. Consequently we should be able to overwrite
 the keycode for `caps` in the table with the code for `ctrl` instead.
 
 To determine which key index corresponds to which key we could either
-measure the connection between the mux circuits and each key on the
-PCB or use a debugger to break at each key press to check the
-index. To measure the connections between mux and key on PCB it would
-be necessary to fully disassemble the keyboard and remove the dome
-sheet, which I was not too keen to do. So I went with the debugger
-route.
+measure the electical connection between the mux circuits and each key
+on the PCB or use a debugger to break at each key press to check the
+global key index variable. To measure the connections between mux and
+key on PCB it would be necessary to fully disassemble the keyboard and
+remove the dome sheet, which I was not too keen on. So I went with
+the debugger route.
 
 Using [mspdebug] to break on entry to the key pressed function I got the
 mapping between key index and keycode in the table below.
@@ -325,16 +331,17 @@ Unfortunately this did not help me a whole lot because OS X promptly
 refused to enumerate the HID device the BSL exposes and therefore I
 could not even route the USB device to a virtual machine. Will need to
 find a PC to do the upgrade the next time I want to change the
-firmware.
+firmware without opening up the case.
 
 ## Further work ##
 
 This concludes my current adventures in Novatouch land. In
-retrospective when reading this post it feels like I could have left
-out half of it and just write about the interesting parts (patching
-and injecting code) instead of trying to explain the whole program
-flow. Well, since this is an experiment in trying to get better at
-writing at least I have something to think about for the next post.
+retrospective when looking over this post it feels like I could have
+left out half of it and just write about the interesting parts
+(patching and injecting code) instead of trying to explain the whole
+program flow. Well, since this is an experiment in trying to get
+better at writing at least I have something to better for the next
+post.
 
 Therea are some things I would like to do further work on that I have
 not yet had time for:
