@@ -2,7 +2,7 @@
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>http://vekkt0r.github.io/articles/novatouch-tkk-reverse-engineering-part-2/</loc>
-    <lastmod>2015-03-02T00:00:00+01:00</lastmod>
+    <lastmod>2015-03-23T00:00:00+01:00</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
@@ -17,31 +17,31 @@
   </url>
   <url>
     <loc>http://vekkt0r.github.io/</loc>
-    <lastmod>2015-03-23T21:35:52+01:00</lastmod>
+    <lastmod>2015-03-23T21:37:50+01:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>http://vekkt0r.github.io/articles/</loc>
-    <lastmod>2015-03-23T21:35:52+01:00</lastmod>
+    <lastmod>2015-03-23T21:37:50+01:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>http://vekkt0r.github.io/tags/</loc>
-    <lastmod>2015-03-23T21:35:52+01:00</lastmod>
+    <lastmod>2015-03-23T21:37:50+01:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>http://vekkt0r.github.io/about/</loc>
-    <lastmod>2015-03-23T21:35:52+01:00</lastmod>
+    <lastmod>2015-03-23T21:37:50+01:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>http://vekkt0r.github.io/blog/</loc>
-    <lastmod>2015-03-23T21:35:52+01:00</lastmod>
+    <lastmod>2015-03-23T21:37:50+01:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
