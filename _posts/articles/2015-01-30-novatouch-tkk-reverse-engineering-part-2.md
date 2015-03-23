@@ -3,7 +3,7 @@ layout: post
 title: "Novatouch TKL Reverse Engineering - Part 2"
 excerpt: "Reverse engineerign the firmware of the CoolerMaster Novatouch TKL keyboard"
 category:
-date: 2015-02-30
+date: 2015-03-23
 categories: articles
 tags: [keyboards]
 image:
