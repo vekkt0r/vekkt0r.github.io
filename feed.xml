@@ -2,13 +2,13 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
 <title type="text">Projects</title>
 <generator uri="https://github.com/jekyll/jekyll">Jekyll</generator>
-<link rel="self" type="application/atom+xml" href="/feed.xml" />
-<link rel="alternate" type="text/html" href="" />
-<updated>2015-03-23T20:54:30+01:00</updated>
-<id>/</id>
+<link rel="self" type="application/atom+xml" href="http://vekkt0r.github.io/feed.xml" />
+<link rel="alternate" type="text/html" href="http://vekkt0r.github.io" />
+<updated>2015-03-23T21:35:52+01:00</updated>
+<id>http://vekkt0r.github.io/</id>
 <author>
   <name>Adam Engström</name>
-  <uri>/</uri>
+  <uri>http://vekkt0r.github.io/</uri>
   <email>adreg@megalan.org</email>
 </author>
 
@@ -17,36 +17,41 @@
 
 <entry>
   <title type="html"><![CDATA[Novatouch TKL Reverse Engineering - Part 2]]></title>
-  <link rel="alternate" type="text/html" href="/articles/novatouch-tkk-reverse-engineering-part-2/" />
-  <id>/articles/novatouch-tkk-reverse-engineering-part-2</id>
+  <link rel="alternate" type="text/html" href="http://vekkt0r.github.io/articles/novatouch-tkk-reverse-engineering-part-2/" />
+  <id>http://vekkt0r.github.io/articles/novatouch-tkk-reverse-engineering-part-2</id>
   <published>2015-03-02T00:00:00+01:00</published>
   <updated>2015-03-02T00:00:00+01:00</updated>
   <author>
     <name>Adam Engström</name>
-    <uri></uri>
+    <uri>http://vekkt0r.github.io</uri>
     <email>adreg@megalan.org</email>
   </author>
   <content type="html">
-    &lt;p&gt;As written in my &lt;a href=&quot;http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1/&quot;&gt;first post&lt;/a&gt; on this subject I was not really happy
-with the default mapping of the keys in the Novatouch, so lets do some
-patching!&lt;/p&gt;
+    &lt;p&gt;As written in my &lt;a href=&quot;/articles/novatouch-tkl-reverse-engineering-part-1/&quot;&gt;first post&lt;/a&gt; on this subject I was not really happy
+with the default mapping of the keys in the Novatouch, this is a
+writeup of the steps I went through to patch the firmware in the
+keyboard for a different behaviour. The changes include patching the
+default key mapping and also adding a hook for entering the TI BSL
+when a specific key combination is pressed.&lt;/p&gt;
 
-&lt;h2 id=&quot;dumping-the-firmware&quot;&gt;Dumping the firmware&lt;/h2&gt;
+&lt;h2 id=&quot;dumping-the-original-firmware&quot;&gt;Dumping the original firmware&lt;/h2&gt;
 
-&lt;p&gt;Instead of using a GoodFET for flashing I’m now using a &lt;a href=&quot;http://www.ti.com/ww/en/launchpad/launchpads-msp430-msp-exp430g2.html&quot;&gt;Launchpad&lt;/a&gt;
-instead. This makes it possible to use the &lt;a href=&quot;http://mspdebug.sourceforge.net/&quot;&gt;mspdebug&lt;/a&gt; tool for remote
-debugging and flashing.&lt;/p&gt;
+&lt;p&gt;Originally I used a GoodFET for flashing but since then I switched to
+a &lt;a href=&quot;http://www.ti.com/ww/en/launchpad/launchpads-msp430-msp-exp430g2.html&quot;&gt;Launchpad&lt;/a&gt; instead. This made it possible to use the &lt;a href=&quot;http://mspdebug.sourceforge.net/&quot;&gt;mspdebug&lt;/a&gt;
+tool for remote debugging and flashing. The programming header pinout
+for JTAG / SWD can be found in the &lt;a href=&quot;/articles/novatouch-tkl-reverse-engineering-part-1/&quot;&gt;last&lt;/a&gt; post.&lt;/p&gt;
 
-&lt;p&gt;To be able to open the firmware file in IDA I used the &lt;a href=&quot;http://www.ti.com/tool/msp430-gcc-opensource&quot;&gt;msp-gcc&lt;/a&gt; tools
-to create an ELF file from the raw binary dump. Should be possible to
-import raw binaries but I did not manage to get it to work. With the
-ELF I don’t need to go through setting up entry address and memory
-details every time I re-import the binary. Having the object files also
-makes it simple to link against new code we want to inject.&lt;/p&gt;
+&lt;p&gt;To be able to open the firmware file in IDA I used objdump from
+&lt;a href=&quot;http://www.ti.com/tool/msp430-gcc-opensource&quot;&gt;msp-gcc&lt;/a&gt; toolchain to create an ELF file from the raw binary
+dump. Should be possible to import raw binaries into IDA but I did not
+manage to get it to work in a timely manner. With the ELF I don’t need
+to go through setting up entry address and memory details every time I
+re-import the binary. Also, having the object files also makes it simple to
+link against new code we want to inject.&lt;/p&gt;
 
-&lt;p&gt;I have published some tools on &lt;a href=&quot;https://github.com/vekkt0r/novatools&quot;&gt;novatools&lt;/a&gt; repository with a Makefile
-that performs all the steps from reading out the firmware to creating
-the ELF file.&lt;/p&gt;
+&lt;p&gt;I have published some tools in my &lt;a href=&quot;https://github.com/vekkt0r/novatools&quot;&gt;novatools&lt;/a&gt; repository with a
+Makefile that performs all the steps from reading out the firmware to
+creating the ELF file.&lt;/p&gt;
 
 &lt;p&gt;Basically what the Makefile does is:&lt;/p&gt;
 
@@ -55,7 +60,7 @@ the ELF file.&lt;/p&gt;
   &lt;li&gt;Convert resulting ihex to raw binary&lt;/li&gt;
   &lt;li&gt;Create separate binary files with the &lt;code&gt;.text&lt;/code&gt; and &lt;code&gt;.vectors&lt;/code&gt; section contents&lt;/li&gt;
   &lt;li&gt;Do some pathing of the text section&lt;/li&gt;
-  &lt;li&gt;Compile code to inject to object file&lt;/li&gt;
+  &lt;li&gt;Compile code to inject into the final ELF&lt;/li&gt;
   &lt;li&gt;Create object file from the section binaries&lt;/li&gt;
   &lt;li&gt;Create MSP430X ELF file from the object files&lt;/li&gt;
 &lt;/ol&gt;
@@ -70,7 +75,7 @@ the raw binary is just 0xFF.&lt;/p&gt;
 &lt;p&gt;After spending some time in IDA identifying possible functions I got
 an overall picture of the program flow. Starting out with finding all
 the IO port manipulation instructions and going from there made things
-a lot easier (using the IO definitions I found out from the hardware
+a lot easier (using the IO pin definitions I found out from the hardware
 analysis).&lt;/p&gt;
 
 &lt;p&gt;I also used the source code of the Texas Instruments
@@ -86,8 +91,8 @@ USB_DEVELOPERS_PACKAGE_3_20_00
 &lt;p&gt;It seems like the reference implementation is used mostly “as-is” with
 some minor modifications. Some changes seem to be back-ported from a
 later version of the reference implementation because there are some
-functions that look to be more from the &lt;code&gt;4_00_00&lt;/code&gt; implementation than
-the &lt;code&gt;3_20_00&lt;/code&gt; implementation.&lt;/p&gt;
+functions that look to be more from the &lt;code&gt;4_00_00&lt;/code&gt; version than
+&lt;code&gt;3_20_00&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;The firmware uses mostly global variables and barely any local
 variables, not even via function arguments. This made it easier to
@@ -134,10 +139,10 @@ modifiers as they are kept as bits in the beginning of the report).&lt;/p&gt;
 
 &lt;p&gt;One of the “special features” of the Novatouch is the ability to press
 &lt;code&gt;fn + F1-F4&lt;/code&gt; for setting the repeat rate of the keyboard, called rapid
-fire. I guess it’s something gamers find useful. The actual repeating
-is done at the end of this function, where the current repeat rate is
-compared with a timer to see of the currently pressed key should be
-sent again.&lt;/p&gt;
+fire. Totally useless function for me but I guess it’s something
+gamers find useful. The actual repeating is done at the end of this
+function, where the current repeat rate is compared with a timer to
+see of the currently pressed key should be sent again.&lt;/p&gt;
 
 &lt;p&gt;The &lt;code&gt;mux_and_read&lt;/code&gt; function is were all the magic happens.&lt;/p&gt;
 
@@ -179,11 +184,11 @@ key up function.&lt;/p&gt;
 the key. First thing that is done is that the key index is translated
 to a keycode with the help of &lt;code&gt;table_1&lt;/code&gt;.&lt;/p&gt;
 
-&lt;p&gt;The keycode is used as index into another table, &lt;code&gt;table_2&lt;/code&gt; which
+&lt;p&gt;The keycode is used as index into another table (&lt;code&gt;table_2&lt;/code&gt;) which
 contains which type of key the code corresponds to. The different
-types of keys can be seen in the figure above. Keys being of type 0 is
-passed through and directly put on the USB report queue to be sent to
-host.&lt;/p&gt;
+types of keys can be seen in the figure above (normal, mod, led). Keys
+being of type 0 is passed through and directly put on the USB report
+queue to be sent to host.&lt;/p&gt;
 
 &lt;p&gt;The handling of rapid fire key combinations can also be found in this
 function. Whenever the &lt;code&gt;fn&lt;/code&gt; key is pressed a flag is set. If the flag
@@ -204,12 +209,12 @@ determine it’s keycode. Consequently we should be able to overwrite
 the keycode for &lt;code&gt;caps&lt;/code&gt; in the table with the code for &lt;code&gt;ctrl&lt;/code&gt; instead.&lt;/p&gt;
 
 &lt;p&gt;To determine which key index corresponds to which key we could either
-measure the connection between the mux circuits and each key on the
-PCB or use a debugger to break at each key press to check the
-index. To measure the connections between mux and key on PCB it would
-be necessary to fully disassemble the keyboard and remove the dome
-sheet, which I was not too keen to do. So I went with the debugger
-route.&lt;/p&gt;
+measure the electical connection between the mux circuits and each key
+on the PCB or use a debugger to break at each key press to check the
+global key index variable. To measure the connections between mux and
+key on PCB it would be necessary to fully disassemble the keyboard and
+remove the dome sheet, which I was not too keen on. So I went with
+the debugger route.&lt;/p&gt;
 
 &lt;p&gt;Using &lt;a href=&quot;http://mspdebug.sourceforge.net/&quot;&gt;mspdebug&lt;/a&gt; to break on entry to the key pressed function I got the
 mapping between key index and keycode in the table below.&lt;/p&gt;
@@ -324,16 +329,17 @@ the Makefile in &lt;a href=&quot;https://github.com/vekkt0r/novatools&quot;&gt;n
 refused to enumerate the HID device the BSL exposes and therefore I
 could not even route the USB device to a virtual machine. Will need to
 find a PC to do the upgrade the next time I want to change the
-firmware.&lt;/p&gt;
+firmware without opening up the case.&lt;/p&gt;
 
 &lt;h2 id=&quot;further-work&quot;&gt;Further work&lt;/h2&gt;
 
 &lt;p&gt;This concludes my current adventures in Novatouch land. In
-retrospective when reading this post it feels like I could have left
-out half of it and just write about the interesting parts (patching
-and injecting code) instead of trying to explain the whole program
-flow. Well, since this is an experiment in trying to get better at
-writing at least I have something to think about for the next post.&lt;/p&gt;
+retrospective when looking over this post it feels like I could have
+left out half of it and just write about the interesting parts
+(patching and injecting code) instead of trying to explain the whole
+program flow. Well, since this is an experiment in trying to get
+better at writing at least I have something to better for the next
+post.&lt;/p&gt;
 
 &lt;p&gt;Therea are some things I would like to do further work on that I have
 not yet had time for:&lt;/p&gt;
@@ -347,7 +353,7 @@ how it works (need to find an oscilloscope first)&lt;/li&gt;
 &lt;/ul&gt;
 
 
-    &lt;p&gt;&lt;a href=&quot;/articles/novatouch-tkk-reverse-engineering-part-2/&quot;&gt;Novatouch TKL Reverse Engineering - Part 2&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;&quot;&gt;Projects&lt;/a&gt; on March 02, 2015.&lt;/p&gt;
+    &lt;p&gt;&lt;a href=&quot;http://vekkt0r.github.io/articles/novatouch-tkk-reverse-engineering-part-2/&quot;&gt;Novatouch TKL Reverse Engineering - Part 2&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;http://vekkt0r.github.io&quot;&gt;Projects&lt;/a&gt; on March 02, 2015.&lt;/p&gt;
   </content>
 </entry>
 
@@ -356,13 +362,13 @@ how it works (need to find an oscilloscope first)&lt;/li&gt;
 
 <entry>
   <title type="html"><![CDATA[Novatouch TKL Reverse Engineering - Part 1]]></title>
-  <link rel="alternate" type="text/html" href="/articles/novatouch-tkl-reverse-engineering-part-1/" />
-  <id>/articles/novatouch-tkl-reverse-engineering-part-1</id>
+  <link rel="alternate" type="text/html" href="http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1/" />
+  <id>http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1</id>
   <published>2015-02-13T20:42:00+01:00</published>
   <updated>2015-02-13T20:42:00+01:00</updated>
   <author>
     <name>Adam Engström</name>
-    <uri></uri>
+    <uri>http://vekkt0r.github.io</uri>
     <email>adreg@megalan.org</email>
   </author>
   <content type="html">
@@ -547,7 +553,7 @@ analysis of the software and see how it can be modified to work more
 like I want.&lt;/p&gt;
 
 
-    &lt;p&gt;&lt;a href=&quot;/articles/novatouch-tkl-reverse-engineering-part-1/&quot;&gt;Novatouch TKL Reverse Engineering - Part 1&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;&quot;&gt;Projects&lt;/a&gt; on February 13, 2015.&lt;/p&gt;
+    &lt;p&gt;&lt;a href=&quot;http://vekkt0r.github.io/articles/novatouch-tkl-reverse-engineering-part-1/&quot;&gt;Novatouch TKL Reverse Engineering - Part 1&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;http://vekkt0r.github.io&quot;&gt;Projects&lt;/a&gt; on February 13, 2015.&lt;/p&gt;
   </content>
 </entry>
 
@@ -556,13 +562,13 @@ like I want.&lt;/p&gt;
 
 <entry>
   <title type="html"><![CDATA[First Post]]></title>
-  <link rel="alternate" type="text/html" href="/articles/first-post/" />
-  <id>/articles/first-post</id>
+  <link rel="alternate" type="text/html" href="http://vekkt0r.github.io/articles/first-post/" />
+  <id>http://vekkt0r.github.io/articles/first-post</id>
   <published>2015-01-11T13:13:00+01:00</published>
   <updated>2015-01-11T13:13:00+01:00</updated>
   <author>
     <name>Adam Engström</name>
-    <uri></uri>
+    <uri>http://vekkt0r.github.io</uri>
     <email>adreg@megalan.org</email>
   </author>
   <content type="html">
@@ -630,7 +636,7 @@ master. This way I keep both the source and generated files in the
 same repo.&lt;/em&gt;&lt;/p&gt;
 
 
-    &lt;p&gt;&lt;a href=&quot;/articles/first-post/&quot;&gt;First Post&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;&quot;&gt;Projects&lt;/a&gt; on January 11, 2015.&lt;/p&gt;
+    &lt;p&gt;&lt;a href=&quot;http://vekkt0r.github.io/articles/first-post/&quot;&gt;First Post&lt;/a&gt; was originally published by Adam Engström at &lt;a href=&quot;http://vekkt0r.github.io&quot;&gt;Projects&lt;/a&gt; on January 11, 2015.&lt;/p&gt;
   </content>
 </entry>
 
